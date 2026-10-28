@@ -1,6 +1,7 @@
 <script lang="ts">
   import { ApiError, api, errorMessage } from '../lib/api/client'
   import type { ProductDetail } from '../lib/api/types'
+  import JarArt from '../lib/components/JarArt.svelte'
   import Seo from '../lib/components/Seo.svelte'
   import { formatDate, formatPrice, formatStars } from '../lib/format'
 
@@ -10,9 +11,6 @@
   let error = $state('')
   let missing = $state(false)
 
-  const images = $derived(
-    product?.images.length ? product.images : [{ url: '/images/jar-placeholder.svg', alt_text: `Jar of ${product?.name}` }],
-  )
   const pricePer100g = $derived(product ? formatPrice(Math.round((product.price_bani * 100) / product.weight_grams)) : '')
 
   $effect(() => {
@@ -44,14 +42,22 @@
 
   <article class="product">
     <div class="gallery">
-      {#each images as image, index (image.url)}
-        <img src={image.url} alt={image.alt_text} width="480" height="480" loading={index === 0 ? 'eager' : 'lazy'} />
+      {#each product.images as image, index (image.url)}
+        <figure class="paper">
+          <span class="tape" aria-hidden="true"></span>
+          <img src={image.url} alt={image.alt_text} width="480" height="480" loading={index === 0 ? 'eager' : 'lazy'} />
+        </figure>
+      {:else}
+        <figure class="paper">
+          <span class="tape" aria-hidden="true"></span>
+          <JarArt {product} />
+        </figure>
       {/each}
     </div>
 
     <div class="details">
       <h1>{product.name}</h1>
-      <p class="price">{formatPrice(product.price_bani)}</p>
+      <p class="price product-price">{formatPrice(product.price_bani)}</p>
       {#if product.average_rating !== null}
         <p>
           <span aria-hidden="true">{formatStars(product.average_rating)}</span>
@@ -59,9 +65,10 @@
           {product.reviews.length === 1 ? 'review' : 'reviews'})
         </p>
       {/if}
-      <p>{product.description}</p>
+      <p class="description">{product.description}</p>
 
-      <table>
+      <div class="paper pantry-label table-scroll">
+      <table class="label-table">
         <caption>About this jar</caption>
         <tbody>
           <tr><th scope="row">Category</th><td>{product.category.name}</td></tr>
@@ -74,6 +81,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
   </article>
 
@@ -82,7 +90,7 @@
     {#if product.reviews.length}
       <ul>
         {#each product.reviews as review (review.id)}
-          <li>
+          <li class="paper review">
             <p>
               <span aria-hidden="true">{formatStars(review.rating)}</span>
               <span class="visually-hidden">{review.rating} out of 5 stars</span>
@@ -96,53 +104,57 @@
         {/each}
       </ul>
     {:else}
-      <p>No reviews yet. Be the first to tell Mum what you think.</p>
+      <p class="status">No reviews yet. Be the first to tell Mum what you think.</p>
     {/if}
   </section>
 {:else if error}
   <Seo title={missing ? 'Jar not found' : 'Something went wrong'} description={error} noindex />
   <h1>{missing ? 'This jar is not on our shelves' : 'Something went wrong'}</h1>
-  <p role="alert">{error}</p>
+  <p class="status status-error" role="alert">{error}</p>
   <p><a href="/products">Browse all jars</a></p>
 {:else}
-  <p aria-live="polite">Opening the jar…</p>
+  <p class="status" aria-live="polite">Opening the jar…</p>
 {/if}
+
 
 <style>
   .breadcrumb {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin: 0 0 1rem;
+    gap: var(--space-xs);
+    margin: 0 0 var(--space-xl);
     padding: 0;
     list-style: none;
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
   }
 
   .breadcrumb li + li::before {
     content: '/';
-    margin-right: 0.5rem;
-    color: #6b4f53;
-  }
-
-  .breadcrumb a {
-    color: #8b2d3a;
+    margin-right: var(--space-xs);
+    color: var(--color-ink-soft);
   }
 
   .product {
     display: grid;
-    gap: 1.5rem;
+    gap: var(--space-xl);
   }
 
-  @media (min-width: 768px) {
+  @media (min-width: 600px) {
     .product {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 5fr 6fr;
+      align-items: start;
     }
   }
 
   .gallery {
     display: grid;
-    gap: 0.75rem;
+    gap: var(--space-xl);
+  }
+
+  .gallery figure {
+    margin: 0;
+    padding: var(--space-md);
+    rotate: -1deg;
   }
 
   .gallery img {
@@ -150,55 +162,53 @@
     height: auto;
     aspect-ratio: 1;
     object-fit: cover;
-    border-radius: 0.75rem;
+    background: var(--color-paper-shade);
   }
 
-  h1 {
-    margin: 0;
+  .details {
+    display: grid;
+    gap: var(--space-md);
+    align-content: start;
   }
 
-  .price {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #8b2d3a;
+  .details h1 {
+    font-size: clamp(2.6rem, 2rem + 2.5vw, 4rem);
   }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
+  .product-price {
+    font-size: 2rem;
   }
 
-  caption {
-    text-align: left;
-    font-weight: 700;
-    padding-bottom: 0.5rem;
+  .description {
+    max-width: 38rem;
+    font-size: var(--text-lg);
   }
 
-  th,
-  td {
-    padding: 0.5rem;
-    border-bottom: 1px solid #e6d5c8;
-    text-align: left;
-    vertical-align: top;
+  .pantry-label {
+    margin-top: var(--space-md);
+    padding: var(--space-lg);
+    background: var(--color-kraft-light);
+    border-radius: var(--radius-paper);
+  }
+
+  .reviews {
+    display: grid;
+    gap: var(--space-lg);
+    margin-top: var(--space-2xl);
   }
 
   .reviews ul {
     display: grid;
-    gap: 1rem;
-    padding: 0;
+    gap: var(--space-xl);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+    margin: 0;
+    padding: var(--space-md) 0 0;
     list-style: none;
   }
 
-  .reviews p {
-    margin: 0;
-  }
-
-  .visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+  .review {
+    display: grid;
+    gap: var(--space-xs);
+    padding: var(--space-lg);
   }
 </style>

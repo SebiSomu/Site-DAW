@@ -26,6 +26,7 @@ class Router {
     if (!anchor || anchor.target || anchor.hasAttribute('download')) return
     if (anchor.origin !== window.location.origin) return
     if (SERVER_PREFIXES.some((prefix) => anchor.pathname.startsWith(prefix))) return
+    if (anchor.hash && anchor.pathname === window.location.pathname && anchor.search === window.location.search) return
     event.preventDefault()
     this.navigate(anchor.href)
   }

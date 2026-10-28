@@ -85,11 +85,11 @@
   <p class="intro">{description}</p>
 
   <nav aria-label="Categories">
-    <ul class="categories">
-      <li><a href={hrefFor({ q, sort })} aria-current={category ? undefined : 'page'}>All jars</a></li>
+    <ul class="tag-list">
+      <li><a class="tag" href={hrefFor({ q, sort })} aria-current={category ? undefined : 'page'}>All jars</a></li>
       {#each categories as item (item.slug)}
         <li>
-          <a href={hrefFor({ q, sort, category: item.slug })} aria-current={item.slug === category ? 'page' : undefined}>
+          <a class="tag" href={hrefFor({ q, sort, category: item.slug })} aria-current={item.slug === category ? 'page' : undefined}>
             {item.name}
           </a>
         </li>
@@ -101,11 +101,11 @@
     {#if category}
       <input type="hidden" name="category" value={category} />
     {/if}
-    <label>
+    <label class="field">
       Search
       <input type="search" name="q" value={q} maxlength="100" placeholder="apricot, walnut…" />
     </label>
-    <label>
+    <label class="field">
       Sort by
       <select name="sort" value={sort} onchange={(event) => event.currentTarget.form?.requestSubmit()}>
         {#each SORT_OPTIONS as option (option.value)}
@@ -113,23 +113,23 @@
         {/each}
       </select>
     </label>
-    <button type="submit">Search</button>
+    <button class="button" type="submit">Search</button>
   </form>
 
   {#if error}
-    <p class="error" role="alert">{error}</p>
+    <p class="status status-error" role="alert">{error}</p>
   {:else if result}
     <p class="count" aria-live="polite">
       {result.total === 1 ? '1 jar' : `${result.total} jars`}{q ? ` matching “${q}”` : ''}
     </p>
     {#if result.items.length}
-      <ul class="grid">
+      <ul class="shelf">
         {#each result.items as product (product.id)}
           <li><ProductCard {product} /></li>
         {/each}
       </ul>
     {:else}
-      <p>No jars match your search. Try another word or <a href="/products">see all jars</a>.</p>
+      <p class="status">No jars match your search. Try another word or <a href="/products">see all jars</a>.</p>
     {/if}
     {#if result.pages > 1}
       <nav class="pagination" aria-label="Pages">
@@ -143,95 +143,48 @@
       </nav>
     {/if}
   {:else}
-    <p aria-live="polite">Fetching the jars from the pantry…</p>
+    <p class="status" aria-live="polite">Fetching the jars from the pantry…</p>
   {/if}
 </section>
+
 
 <style>
   .catalogue {
     display: grid;
-    gap: 1rem;
+    gap: var(--space-lg);
   }
 
-  h1 {
-    margin: 0;
-  }
-
-  .intro,
-  .count {
-    margin: 0;
-  }
-
-  .categories,
-  .grid {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .categories {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .categories a {
-    display: inline-block;
-    padding: 0.4rem 0.9rem;
-    border: 1px solid #8b2d3a;
-    border-radius: 999px;
-    color: #8b2d3a;
-    text-decoration: none;
-  }
-
-  .categories a[aria-current='page'] {
-    background: #8b2d3a;
-    color: #fffaf3;
+  .intro {
+    max-width: 40rem;
+    font-size: var(--text-lg);
   }
 
   .filters {
     display: flex;
     flex-wrap: wrap;
     align-items: end;
-    gap: 0.75rem;
+    gap: var(--space-sm) var(--space-md);
+    padding: var(--space-md);
+    background: var(--color-paper-shade);
   }
 
-  .filters label {
-    display: grid;
-    gap: 0.25rem;
-    font-size: 0.9rem;
+  .filters .field:first-of-type {
+    flex: 1 1 14rem;
   }
 
-  .filters input,
-  .filters select,
-  .filters button {
-    font: inherit;
-    padding: 0.45rem 0.6rem;
-    border-radius: 0.4rem;
-    border: 1px solid #b89a8f;
-  }
-
-  .filters button {
-    background: #8b2d3a;
-    border-color: #8b2d3a;
-    color: #fffaf3;
-    cursor: pointer;
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
-    gap: 1rem;
+  .count {
+    font-family: var(--font-hand);
+    font-size: 1.6rem;
+    color: var(--color-ink-soft);
   }
 
   .pagination {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 1rem;
-  }
-
-  .error {
-    color: #a1132b;
+    gap: var(--space-md) var(--space-lg);
+    padding-top: var(--space-lg);
+    font-weight: 700;
   }
 </style>

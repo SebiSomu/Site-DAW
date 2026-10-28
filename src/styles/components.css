@@ -1,0 +1,456 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: 2.75rem;
+  padding: 0.6rem 1.4rem;
+  border: 2px solid var(--color-jam);
+  border-radius: var(--radius-pill);
+  background: var(--color-jam);
+  color: var(--color-paper);
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--t-hover) ease,
+    transform var(--t-press) var(--ease-out);
+}
+
+.button:hover {
+  background: var(--color-jam-deep);
+  color: var(--color-paper);
+  text-decoration: none;
+}
+
+.button:active {
+  transform: scale(0.96);
+}
+
+.button-quiet {
+  background: transparent;
+  color: var(--color-jam);
+}
+
+.button-quiet:hover {
+  background: var(--color-jam);
+}
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 50%;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition:
+    background-color var(--t-hover) ease,
+    color var(--t-hover) ease,
+    transform var(--t-press) var(--ease-out);
+}
+
+.icon-button:hover {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.icon-button:active {
+  transform: scale(0.92);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.brand:hover {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.brand-lid {
+  flex: none;
+  transition: rotate var(--t-ui) var(--ease-out);
+}
+
+.brand:hover .brand-lid,
+.brand:focus-visible .brand-lid {
+  rotate: -14deg;
+}
+
+.brand-lid .cloth-ground {
+  fill: var(--color-paper);
+}
+
+.brand-lid .cloth-check {
+  fill: var(--color-jam);
+  opacity: 0.38;
+}
+
+.brand-lid .lid-cloth {
+  fill: url(#brand-gingham);
+  stroke: var(--color-jam);
+  stroke-width: 1.2;
+}
+
+.brand-lid .lid-twine,
+.brand-lid .lid-bow {
+  fill: none;
+  stroke: var(--color-kraft-deep);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.brand-lid .lid-label {
+  fill: var(--color-paper);
+}
+
+.brand-lid .lid-text {
+  font-family: var(--font-hand);
+  font-size: 17px;
+  font-weight: 700;
+  fill: var(--color-jam);
+}
+
+.brand-words {
+  display: grid;
+  line-height: 1;
+}
+
+.brand-top {
+  font-family: var(--font-hand);
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--color-jam);
+}
+
+.brand-name {
+  font-family: var(--font-label);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.paper {
+  position: relative;
+  background: var(--color-paper);
+  border-radius: var(--radius-paper);
+  box-shadow: var(--shadow-paper);
+}
+
+.tape {
+  position: absolute;
+  top: -0.7rem;
+  left: 50%;
+  z-index: 1;
+  width: 5.5rem;
+  height: 1.6rem;
+  background: var(--color-tape);
+  clip-path: polygon(3% 8%, 97% 0, 100% 92%, 0 100%);
+  translate: -50% 0;
+  rotate: var(--tape-tilt, -3deg);
+  transform-origin: 15% 50%;
+  pointer-events: none;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag {
+  position: relative;
+  display: inline-block;
+  padding: 0.35rem 1rem 0.35rem 1.6rem;
+  background: var(--color-kraft-light);
+  color: var(--color-ink);
+  font-weight: 700;
+  text-decoration: none;
+  clip-path: polygon(0.7rem 0, 100% 0, 100% 100%, 0.7rem 100%, 0 50%);
+  transition: background-color var(--t-hover) ease, translate var(--t-ui) var(--ease-out);
+}
+
+.tag::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--color-ground);
+  translate: 0 -50%;
+}
+
+.tag:hover {
+  background: var(--color-kraft);
+  color: var(--color-ink);
+  text-decoration: none;
+  translate: 0 -2px;
+}
+
+.tag[aria-current='page'] {
+  background: var(--color-jam);
+  color: var(--color-paper);
+}
+
+.index-card {
+  display: grid;
+  gap: var(--space-2xs);
+  align-content: start;
+  height: 100%;
+  padding: var(--space-lg) var(--space-sm) var(--space-md);
+  border-top: 4px solid var(--color-jam);
+}
+
+.index-card a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.index-card a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.index-card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: var(--color-paper-shade);
+}
+
+.index-card h3 {
+  margin-top: var(--space-xs);
+  font-size: clamp(1.45rem, 1.2rem + 0.8vw, 1.85rem);
+  color: var(--color-ink);
+}
+
+.index-card .meta {
+  font-size: var(--text-sm);
+}
+
+.price {
+  font-family: var(--font-label);
+  font-weight: 700;
+  color: var(--color-jam);
+}
+
+.index-card .price {
+  font-size: 1.2rem;
+}
+
+.sold-out {
+  justify-self: start;
+  padding: 0.1rem 0.6rem;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  rotate: -2deg;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2xs);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.field input,
+.field select {
+  min-height: 2.75rem;
+  padding: 0.45rem 0.75rem;
+  border: 2px solid var(--color-kraft-deep);
+  border-radius: var(--radius-paper);
+  background: var(--color-paper);
+  font-weight: 400;
+}
+
+.field input:focus-visible,
+.field select:focus-visible {
+  border-color: var(--color-jam);
+}
+
+.label-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-base);
+}
+
+.label-table caption {
+  padding-bottom: var(--space-sm);
+  font-family: var(--font-hand);
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-align: left;
+  color: var(--color-jam);
+}
+
+.label-table th,
+.label-table td {
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px dashed var(--color-kraft-deep);
+  text-align: left;
+  vertical-align: top;
+}
+
+.label-table th {
+  width: 40%;
+  font-family: var(--font-label);
+  font-weight: 600;
+}
+
+.status {
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-paper);
+  font-family: var(--font-hand);
+  font-size: 1.6rem;
+}
+
+.status-error {
+  color: var(--color-error);
+}
+
+.book {
+  position: relative;
+  padding: var(--space-sm);
+  background: var(--color-plum);
+  border-radius: 6px;
+}
+
+.book-pages {
+  display: grid;
+  perspective: 2200px;
+  touch-action: pan-y;
+}
+
+.book-page {
+  grid-area: 1 / 1;
+  display: grid;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-paper);
+  border-radius: 2px;
+  transform-origin: left center;
+  backface-visibility: hidden;
+}
+
+.book-page figure {
+  margin: 0;
+  overflow: hidden;
+  background: var(--color-paper-shade);
+}
+
+.book-page img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  scale: 1.1;
+}
+
+.book-page .note {
+  display: grid;
+  align-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs);
+}
+
+.book-page h2,
+.book-page h3 {
+  font-size: clamp(2.2rem, 1.6rem + 2vw, 3.2rem);
+}
+
+.book-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding-top: var(--space-sm);
+}
+
+.book-controls .icon-button {
+  border-color: var(--color-paper);
+  background: transparent;
+  color: var(--color-paper);
+}
+
+.book-controls .icon-button:hover {
+  background: var(--color-paper);
+  color: var(--color-plum);
+}
+
+.book-dots {
+  display: flex;
+  gap: var(--space-2xs);
+}
+
+.book-dots button {
+  width: 2rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.book-dots button::before {
+  content: '';
+  display: block;
+  width: 0.8rem;
+  height: 0.8rem;
+  margin: auto;
+  border: 2px solid var(--color-paper);
+  border-radius: 50%;
+  transition: background-color var(--t-hover) ease, scale var(--t-ui) var(--ease-out);
+}
+
+.book-dots button[aria-current='true']::before {
+  background: var(--color-apricot);
+  border-color: var(--color-apricot);
+  scale: 1.25;
+}
+
+@media (min-width: 600px) {
+  .book-page {
+    grid-template-columns: 5fr 6fr;
+    align-items: stretch;
+  }
+
+  .book-page img {
+    aspect-ratio: 3 / 4;
+  }
+}
+
+.recipe-card {
+  display: grid;
+  gap: var(--space-md);
+  max-width: 40rem;
+  padding: var(--space-xl) var(--space-lg) var(--space-lg);
+  background-color: var(--color-paper);
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 calc(2rem - 1px),
+    rgb(90 120 160 / 0.18) calc(2rem - 1px) 2rem
+  );
+  background-position: 0 3.2rem;
+}
+
+.recipe-card p {
+  line-height: 2rem;
+}

@@ -68,3 +68,7 @@ Thumbs.db
 desktop.ini
 
 *.pdf
+
+# ===================== Design checks =====================
+.taste-skill/
+.playwright-mcp/

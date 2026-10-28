@@ -1,0 +1,111 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background-color: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  overflow-x: clip;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--color-jam);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--text-display);
+}
+
+h2 {
+  font-size: var(--text-xl);
+}
+
+h3 {
+  font-size: 1.6rem;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: var(--color-jam);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition: color var(--t-hover) ease, text-decoration-color var(--t-hover) ease;
+}
+
+a:hover {
+  color: var(--color-jam-deep);
+  text-decoration-thickness: 2px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-apricot);
+  outline-offset: 3px;
+  border-radius: var(--radius-paper);
+}
+
+::selection {
+  background: var(--color-apricot);
+  color: var(--color-ink);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  top: var(--space-xs);
+  left: var(--space-xs);
+  z-index: 10;
+  padding: var(--space-xs) var(--space-md);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  translate: 0 -200%;
+}
+
+.skip-link:focus {
+  translate: 0 0;
+}

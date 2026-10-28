@@ -154,6 +154,18 @@ All public, read-only (`GET`, no CSRF token needed). Prices are integer bani (`2
 
 Frontend pages: `/` (home), `/products` (catalogue with category links, search, sort, pagination, all kept in the URL), `/products/<slug>` (product page), anything else shows the 404 page. Every page sets its title, description, canonical URL and Open Graph tags through `src/lib/components/Seo.svelte`.
 
+## Design
+
+Pantry label plus recipe book: gingham bands, kraft tags, index cards held on with tape and 1900s fruit watercolours as the pages of a recipe book. Styles live in five files in `src/styles/` (tokens, base, layout, components, animations); fonts are self-hosted with `@fontsource-variable` (Caveat, Fraunces, Nunito). Every animation is switched off when the device asks for reduced motion.
+
+The logo is a gingham-covered jar lid (`src/lib/components/SiteHeader.svelte`, favicon in `public/favicon.svg`). Products without an uploaded photo show a drawn jar (`src/lib/components/JarArt.svelte`): the category sets the jar shape and lid cloth, and `src/lib/jars.ts` sets each product's jam colour, label, fruit and background. A new product with no entry there still gets its category's jar with its own name on the label; add an entry to give it its own colour and fruit.
+
+| Phone (390px) | Tablet (768px) | Desktop (1440px) |
+|---|---|---|
+| ![Home page on a phone](docs/screenshots/home-phone.jpg) | ![Catalogue on a tablet](docs/screenshots/catalogue-tablet.jpg) | ![Home page on a desktop](docs/screenshots/home-desktop.jpg) |
+
+Picture credits: the fruit watercolours in `public/images/plates/` come from the [USDA Pomological Watercolor Collection](https://commons.wikimedia.org/wiki/Category:USDA_Pomological_Watercolor_Collection) (public domain, via Wikimedia Commons). Painters, dates and source pages are listed in [`docs/image-credits.json`](docs/image-credits.json).
+
 ## Continuous integration
 
 Every push and pull request to `main` runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml) on GitHub Actions:

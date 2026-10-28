@@ -53,15 +53,15 @@ Counted with: `grep -rE "^class " backend/app | wc -l`
 |---|---|:-:|---|
 | 4.01 | Inheritance | ✅ | Repositories inherit `SqlAlchemyRepository`; configs inherit `BaseConfig`; models inherit mixins; `AppError` → `ValidationError`, `AuthenticationError`, `ForbiddenError`, `NotFoundError`, `ConflictError` (`backend/app/errors.py`); `ProductDetail` extends `ProductSummary` (`backend/app/schemas/catalog.py`); `ApiError` extends `Error` (`src/lib/api/client.ts`) |
 | 4.02 | ≥2 exception types handled | ✅ | `backend/app/errors.py` maps the `AppError` family, Pydantic `ValidationError`, SQLAlchemy `IntegrityError`, Flask-WTF `CSRFError`, Werkzeug `HTTPException` and unexpected errors (500) to JSON `{"error": ...}`. Tests: duplicate email → 409, invalid input → 400, guest → 401, unknown route → 404 |
-| 4.03 | Image carousel | ⬜ | |
-| 4.04 | Animation | ⬜ | |
+| 4.03 | Image carousel | ✅ | `src/lib/components/Carousel.svelte` on the home page: four fruit watercolours as recipe-book pages that turn over (3D page turn), autoplay every 7 s with a pause button, previous/next buttons, page dots, arrow keys, swipe on touch screens, pauses on hover and focus, `aria-roledescription="carousel"` and `aria-live` when paused |
+| 4.04 | Animation | ✅ | `src/styles/animations.css`: `@keyframes sway` (jar cards and pinned pictures sway like paper in a draught, each with its own tilt, duration and delay), tape that lifts on hover, `@keyframes rise` scroll-linked entrances (`animation-timeline: view()`); Svelte page-turn transition in the carousel. All switched off under `prefers-reduced-motion` (autoplay off too) |
 
 ## Nota 5 — Stilizare și design responsive
 
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
-| 5.01 | ≥2 CSS files, ≥10 properties | ⬜ | |
-| 5.02 | Responsive | ⬜ | |
+| 5.01 | ≥2 CSS files, ≥10 properties | ✅ | 5 files in `src/styles/` (`variables.css`, `base.css`, `layout.css`, `components.css`, `animations.css`) plus scoped component styles; 80+ distinct properties, e.g. custom properties, `grid-template-columns`, `clip-path`, `perspective`, `aspect-ratio`, `object-fit`, `transform-origin`, `animation-timeline`, `clamp()` sizes. Fonts self-hosted through `@fontsource-variable` |
+| 5.02 | Responsive | ✅ | Mobile-first, breakpoints 600px and 1024px: menu button below 1024px, jar grid 2 → 4 columns, hero and product page 1 → 2 columns, carousel page stacks on phones, tables scroll sideways. Screenshots: [`docs/screenshots/`](screenshots/) (phone 390px, tablet 768px, desktop 1440px) |
 
 ## Nota 6 — Testare și automatizarea dezvoltării
 

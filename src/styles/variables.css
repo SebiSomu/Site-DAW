@@ -1,0 +1,50 @@
+:root {
+  --color-ground: #f4ede3;
+  --color-paper: #fffcf7;
+  --color-paper-shade: #ebe0cf;
+  --color-kraft: #c9a26b;
+  --color-kraft-deep: #a8824e;
+  --color-kraft-light: #e4cfa8;
+  --color-ink: #3b1f24;
+  --color-ink-soft: #6b4f53;
+  --color-jam: #8b2d3a;
+  --color-jam-deep: #6e1f2b;
+  --color-plum: #5a2a4a;
+  --color-apricot: #e8a04c;
+  --color-tape: rgb(236 222 186 / 0.82);
+  --color-gingham: rgb(139 45 58 / 0.22);
+  --color-error: #a1132b;
+  --color-warning: #7a5b00;
+
+  --font-hand: 'Caveat Variable', 'Segoe Print', cursive;
+  --font-label: 'Fraunces Variable', Georgia, serif;
+  --font-body: 'Nunito Variable', system-ui, sans-serif;
+
+  --text-sm: 0.95rem;
+  --text-base: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: clamp(1.9rem, 1.4rem + 2vw, 2.75rem);
+  --text-display: clamp(3rem, 1.8rem + 5.5vw, 6rem);
+
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: clamp(4rem, 3rem + 5vw, 8rem);
+
+  --gutter: clamp(1rem, 0.5rem + 2vw, 2rem);
+  --page-width: 75rem;
+  --radius-paper: 2px;
+  --radius-pill: 999px;
+  --shadow-paper: 0 1px 1px rgb(59 31 36 / 0.08), 0 6px 14px -8px rgb(59 31 36 / 0.35);
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-sway: cubic-bezier(0.45, 0, 0.55, 1);
+  --t-press: 140ms;
+  --t-hover: 200ms;
+  --t-ui: 260ms;
+  --t-turn: 750ms;
+}

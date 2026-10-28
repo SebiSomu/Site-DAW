@@ -329,7 +329,11 @@ Free services used: Azure for Students, Let's Encrypt, Stripe test mode, Cloudfl
 ## 10. Design direction
 
 - Warm, homemade, elegant: cream background, deep jam reds/plum, apricot/amber accents, kraft-paper and gingham touches, hand-drawn label feel.
-- Fonts: a serif display font for headings (e.g. Playfair Display / Fraunces), clean sans for body (e.g. Nunito / Source Sans 3) — self-hosted for CSP and performance.
+- Look: pantry label plus recipe book. Gingham bands, kraft tags and footer, index cards held on with tape, a recipe card with ruled lines, 1900s fruit watercolours (USDA Pomological Watercolor Collection, public domain) as recipe-book pages.
+- Logo: a jar lid seen from above, covered in red gingham and tied with twine, next to the stacked wordmark (`SiteHeader.svelte`); the lid alone is the favicon.
+- Product pictures: until real photos are uploaded, every product has its own jar illustration (`JarArt.svelte`). Jar shape and lid cloth show the category (round jar and red gingham for jams, tall and green for preserves, wide and amber for fruit butters, square and plum for seasonal editions); jam colour, handwritten label, the fruit drawn at the foot and a background tint make each product distinct. Looks per product live in `src/lib/jars.ts`.
+- Fonts (self-hosted via `@fontsource-variable`): Caveat for handwritten headings and notes, Fraunces for labels and prices, Nunito for body text.
+- Motion: cards sway like paper in a draught, tape lifts on hover, carousel pages turn like a recipe book, scroll-linked entrances; all off under `prefers-reduced-motion`. The jar-lid pop on add-to-cart comes with the cart in phase 5.
 - Copy tone: grandmotherly warmth ("Made with love, in a copper pot, the old-fashioned way").
 - Accessibility: contrast AA, focus styles, keyboard navigation, `alt` text, form labels.
 
@@ -343,7 +347,7 @@ Free services used: Azure for Students, Let's Encrypt, Stripe test mode, Cloudfl
 | 1. Data ✅ | Models, migrations, seed (categories, ~10 jams, admin), repositories | 2.01, 2.03, 3.01, 3.02, 4.01 |
 | 2. Auth ✅ | Register/login/logout, roles, decorators, CSRF, error hierarchy, logging (backend only; login/register pages come with phase 4–5 UI). CAPTCHA and login rate limit stay in phase 8 | 3.03, 3.04, 4.02, 7.01, 9.01 |
 | 3. Catalogue ✅ | Product API + pages, filters, search, product detail, SEO component | 2.02, 2.04, 8.01 |
-| 4. UI shell | Styles (5 CSS files), header/footer, responsive nav, carousel, animations | 4.03, 4.04, 5.01, 5.02 |
+| 4. UI shell ✅ | Styles (5 CSS files), header/footer, responsive nav, carousel, animations | 4.03, 4.04, 5.01, 5.02 |
 | 5. Cart & orders | CartStore, checkout, addresses, order history, cancel, reviews | 2.02 |
 | 6. Payments | Stripe Checkout + webhook, success/cancel pages | 8.02 |
 | 7. Admin | Product CRUD, secure image upload pipeline, orders, messages, log viewer | 9.04, 9.05, 10.03 |
