@@ -3,6 +3,7 @@ import os
 from flask import Flask
 
 from app.cli import register_cli
+from app.controllers import register_blueprints
 from app.config import resolve_config
 from app.extensions import db, migrate
 
@@ -21,5 +22,6 @@ def create_app(config_name: str | None = None) -> Flask:
 
     from app import models
 
+    register_blueprints(app)
     register_cli(app)
     return app

@@ -4,6 +4,7 @@ Online shop for mum's homemade jams. Frontend in **Svelte 5 + Vite + TypeScript*
 
 - Project plan: [`PLAN.md`](PLAN.md)
 - Grading rubric: [`Barem_evaluare_proiect_web.md`](Barem_evaluare_proiect_web.md)
+- Barem progress tracker: [`docs/BAREM.md`](docs/BAREM.md)
 - Skill for AI agents: [`.agents/skills/gemuri-webdev/SKILL.md`](.agents/skills/gemuri-webdev/SKILL.md)
 
 ## Requirements
@@ -61,6 +62,24 @@ If PowerShell refuses to activate the environment (`running scripts is disabled`
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 ```
 
+## Running locally
+
+Use two terminals.
+
+Terminal 1, backend (from `backend/`, virtual environment active):
+
+```powershell
+flask run
+```
+
+Terminal 2, frontend (from the project root):
+
+```powershell
+npm run dev
+```
+
+Open http://localhost:5173. Vite forwards every `/api/*` and `/uploads/*` request to Flask on http://127.0.0.1:5000, so the frontend never needs the backend URL. The home page shows `Server: conectat` when both are running.
+
 ## Frontend commands
 
 Run these from the project root.
@@ -86,12 +105,22 @@ Before the first run, edit `backend/.env`: set a long random `SECRET_KEY` and an
 | `flask seed --demo` | Same, plus a demo client `client@exemplu.ro` / `Client-Demo-123` |
 | `flask db migrate -m "describe change"` | Generates a migration after changing a model; review it, then run `flask db upgrade` |
 | `flask db downgrade` | Reverts the last migration |
+| `flask run` | Starts the API at http://127.0.0.1:5000 (health check: `/api/health`) |
 | `pytest` | Runs the backend tests |
 | `deactivate` | Leaves the virtual environment |
 
 To start over with an empty database, delete `backend/instance/gemuri.db`, then run `flask db upgrade` and `flask seed --demo`.
 
 The database schema, ER diagram and 3NF explanation are in [`docs/DATABASE.md`](docs/DATABASE.md).
+
+## Continuous integration
+
+Every push and pull request to `main` runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml) on GitHub Actions:
+
+- **Backend:** install dependencies, apply migrations, check the models match the migrations (`flask db check`), run `pytest`
+- **Frontend:** `npm ci`, `npm run check`, `npm run build`, and upload `dist/` as a downloadable artifact
+
+A pull request should only be merged when both jobs are green.
 
 ## Git workflow
 
@@ -121,4 +150,6 @@ Rules:
 | `git push` rejected with `non-fast-forward` | `git pull --rebase origin main`, then `git push` |
 | `npm` is not recognized | Install Node.js and reopen the terminal |
 | `python` opens the Microsoft Store | Install Python from python.org and tick "Add python.exe to PATH" |
+| `Server: indisponibil` on the home page | Flask isn't running: start it with `flask run` in `backend/` |
+| Many files show as modified after pulling `.gitattributes` | Run `git add --renormalize .` once and commit it (line endings are now normalized to LF) |
 | Port 5173 is busy | Vite picks another port automatically; use the address shown in the terminal |
