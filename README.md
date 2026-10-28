@@ -78,7 +78,7 @@ Terminal 2, frontend (from the project root):
 npm run dev
 ```
 
-Open http://localhost:5173. Vite forwards every `/api/*` and `/uploads/*` request to Flask on http://127.0.0.1:5000, so the frontend never needs the backend URL. The home page shows `Server: connected` when both are running.
+Open http://localhost:5173. Vite forwards every `/api/*` and `/uploads/*` request, plus `/robots.txt` and `/sitemap.xml`, to Flask on http://127.0.0.1:5000, so the frontend never needs the backend URL. The shop is at http://localhost:5173/products; it lists the seeded jars when both servers are running.
 
 ## Frontend commands
 
@@ -139,6 +139,21 @@ User actions are written to `backend/logs/activity.log` (gitignored, rotated at 
 
 Logged so far: `register`, `login`, `login_failed`, `logout`, `access_denied`, `csrf_rejected`.
 
+## Catalogue API
+
+All public, read-only (`GET`, no CSRF token needed). Prices are integer bani (`2450` = `24.50 lei`).
+
+| Endpoint | Result |
+|---|---|
+| `/api/categories` | `{"categories": [{id, name, slug, description}]}` |
+| `/api/products?q=&category=&sort=&page=&per_page=` | `{"items": [...], "total", "page", "per_page", "pages"}` |
+| `/api/products/<slug>` | `{"product": {..., description, images, ingredients, average_rating, reviews}}` or `404` |
+| `/robots.txt`, `/sitemap.xml` | Generated from the database, so new products appear in the sitemap automatically |
+
+`sort` is `newest` (default), `price-asc`, `price-desc` or `name`; `per_page` is 1–48 (default 12). Invalid values return `400`. Inactive products are hidden.
+
+Frontend pages: `/` (home), `/products` (catalogue with category links, search, sort, pagination, all kept in the URL), `/products/<slug>` (product page), anything else shows the 404 page. Every page sets its title, description, canonical URL and Open Graph tags through `src/lib/components/Seo.svelte`.
+
 ## Continuous integration
 
 Every push and pull request to `main` runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml) on GitHub Actions:
@@ -176,6 +191,6 @@ Rules:
 | `git push` rejected with `non-fast-forward` | `git pull --rebase origin main`, then `git push` |
 | `npm` is not recognized | Install Node.js and reopen the terminal |
 | `python` opens the Microsoft Store | Install Python from python.org and tick "Add python.exe to PATH" |
-| `Server: unavailable` on the home page | Flask isn't running: start it with `flask run` in `backend/` |
+| "We could not reach the shop" on `/products` | Flask isn't running: start it with `flask run` in `backend/` |
 | Many files show as modified after pulling `.gitattributes` | Run `git add --renormalize .` once and commit it (line endings are now normalized to LF) |
 | Port 5173 is busy | Vite picks another port automatically; use the address shown in the terminal |

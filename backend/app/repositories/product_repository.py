@@ -5,7 +5,7 @@ from typing import Sequence
 from sqlalchemy import Select, func, or_, select
 from sqlalchemy.orm import selectinload
 
-from app.models import Category, Product
+from app.models import Category, Product, Review
 from app.repositories.base import SqlAlchemyRepository
 
 
@@ -43,7 +43,12 @@ class ProductRepository(SqlAlchemyRepository[Product]):
         statement = (
             select(Product)
             .where(Product.slug == slug)
-            .options(selectinload(Product.images), selectinload(Product.ingredients), selectinload(Product.reviews))
+            .options(
+                selectinload(Product.category),
+                selectinload(Product.images),
+                selectinload(Product.ingredients),
+                selectinload(Product.reviews).selectinload(Review.user),
+            )
         )
         if not include_inactive:
             statement = statement.where(Product.is_active.is_(True))
@@ -62,12 +67,16 @@ class ProductRepository(SqlAlchemyRepository[Product]):
         total = self.session.scalar(select(func.count()).select_from(statement.subquery())) or 0
         page = max(1, page)
         items = self.session.scalars(
-            statement.options(selectinload(Product.images))
+            statement.options(selectinload(Product.category), selectinload(Product.images))
             .order_by(*SORT_ORDER[sort])
             .limit(per_page)
             .offset((page - 1) * per_page)
         ).all()
         return ProductPage(items=items, total=total, page=page, per_page=per_page)
+
+    def list_active(self) -> Sequence[Product]:
+        statement = select(Product).where(Product.is_active.is_(True)).order_by(Product.id)
+        return self.session.scalars(statement).all()
 
     def list_low_stock(self, threshold: int = 5) -> Sequence[Product]:
         statement = select(Product).where(Product.stock <= threshold).order_by(Product.stock.asc())

@@ -9,6 +9,8 @@ export default defineConfig({
     proxy: {
       '/api': { target: backendUrl, changeOrigin: false },
       '/uploads': { target: backendUrl, changeOrigin: false },
+      '/robots.txt': { target: backendUrl, changeOrigin: false },
+      '/sitemap.xml': { target: backendUrl, changeOrigin: false },
     },
   },
 })

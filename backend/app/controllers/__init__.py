@@ -1,9 +1,11 @@
 from flask import Flask
 
 from app.controllers.auth_controller import auth_bp
+from app.controllers.catalog_controller import catalog_bp
 from app.controllers.health_controller import health_bp
+from app.controllers.seo_controller import seo_bp
 
-BLUEPRINTS = (health_bp, auth_bp)
+BLUEPRINTS = (health_bp, auth_bp, catalog_bp, seo_bp)
 
 
 def register_blueprints(app: Flask) -> None:

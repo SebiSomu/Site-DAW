@@ -9,15 +9,15 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
 | 2.01 | Database in 3NF | ✅ | [`docs/DATABASE.md`](DATABASE.md), ER diagram, `backend/tests/test_models.py` |
-| 2.02 | ≥4 use cases | ⬜ | |
-| 2.03 | MVC / Repository | 🟡 | Models + Repository layer (`backend/app/models/`, `backend/app/repositories/`), Service layer (`backend/app/services/`), Controllers (`backend/app/controllers/`); Svelte views pending |
-| 2.04 | Images, text, tables, links | ⬜ | |
+| 2.02 | ≥4 use cases | 🟡 | UC1 browse catalogue: `/products` (category filter, search, sort, pagination), `/products/<slug>`. UC3 auth API done (pages in phase 5). Remaining use cases in phases 5–7 |
+| 2.03 | MVC / Repository | ✅ | Models (`backend/app/models/`), Views (Svelte pages in `src/pages/`), Controllers (`backend/app/controllers/`), plus Repository (`backend/app/repositories/`) and Service (`backend/app/services/`) layers. Example flow: `ProductsPage.svelte` → `GET /api/products` → `catalog_controller` → `CatalogService` → `ProductRepository` → `Product` |
+| 2.04 | Images, text, tables, links | 🟡 | Product page: images (placeholder until photos are uploaded in phase 7), descriptions, "About this jar" table, breadcrumb and category links. Pending: real photos, carousel, footer/legal links (phase 4) |
 
 ## Nota 3 — Programare orientată pe obiecte și controlul accesului
 
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
-| 3.01 | ≥3 classes | ✅ | 55 backend classes, see below |
+| 3.01 | ≥3 classes | ✅ | 64 backend classes plus `ApiClient`, `ApiError` and `Router` on the frontend, see below |
 | 3.02 | ≥1 interface | ✅ | `IRepository` (ABC with abstract methods) in `backend/app/repositories/base.py`, implemented through `SqlAlchemyRepository` by every repository. `PaymentGateway` and `FileValidator` come in phases 6–7 |
 | 3.03 | Authentication | ✅ | `/api/auth/register`, `/login`, `/logout`, `/me` (`backend/app/controllers/auth_controller.py` → `AuthService`); Flask-Login session cookie (HttpOnly, SameSite=Lax, Secure in prod); scrypt hashes. Tests: `backend/tests/test_auth.py` |
 | 3.04 | Authorization | 🟡 | Roles `client`/`admin`; `@login_required` and `@role_required(RoleName.ADMIN)` (`backend/app/security/access.py`): guest → 401, client → 403, admin → 200 (`test_role_required_enforces_admin_role`). Pending: ownership checks on orders (phase 5), frontend route guards (UX only) |
@@ -31,9 +31,10 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 | Enumerations | `RoleName`, `OrderStatusCode`, `PaymentStatus`, `PaymentProvider`, `ProductSort` | `backend/app/models/enums.py`, `backend/app/repositories/product_repository.py` |
 | Repositories | `SqlAlchemyRepository`, `UserRepository`, `AddressRepository`, `RoleRepository`, `CategoryRepository`, `IngredientRepository`, `ProductRepository`, `OrderRepository`, `OrderStatusRepository`, `PaymentRepository`, `ReviewRepository`, `ContactMessageRepository` | `backend/app/repositories/` |
 | Value objects | `ProductPage`, `SeedReport`, `CategorySeed`, `ProductSeed` | `backend/app/repositories/product_repository.py`, `backend/app/seed/` |
-| Services | `AuthService`, `ActivityLogger`, `DatabaseSeeder` | `backend/app/services/`, `backend/app/seed/seeder.py` |
+| Services | `AuthService`, `CatalogService`, `ActivityLogger`, `DatabaseSeeder` | `backend/app/services/`, `backend/app/seed/seeder.py` |
 | Errors | `AppError`, `ValidationError`, `AuthenticationError`, `ForbiddenError`, `NotFoundError`, `ConflictError` | `backend/app/errors.py` |
-| Request/response schemas | `RequestSchema`, `RegisterRequest`, `LoginRequest`, `UserResponse` | `backend/app/schemas/auth.py` |
+| Request/response schemas | `RequestSchema`, `RegisterRequest`, `LoginRequest`, `UserResponse`, `ProductQuery`, `CategoryResponse`, `CategoryRef`, `ImageResponse`, `ReviewResponse`, `ProductSummary` → `ProductDetail`, `ProductPageResponse` | `backend/app/schemas/` |
+| Frontend | `ApiClient`, `ApiError` (extends `Error`), `Router` | `src/lib/api/client.ts`, `src/lib/router/router.svelte.ts` |
 | Configuration | `BaseConfig`, `DevelopmentConfig`, `TestingConfig`, `ProductionConfig` | `backend/app/config.py` |
 
 Classes with real behaviour, good to show the teacher:
@@ -50,7 +51,7 @@ Counted with: `grep -rE "^class " backend/app | wc -l`
 
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
-| 4.01 | Inheritance | ✅ | Repositories inherit `SqlAlchemyRepository`; configs inherit `BaseConfig`; models inherit mixins; `AppError` → `ValidationError`, `AuthenticationError`, `ForbiddenError`, `NotFoundError`, `ConflictError` (`backend/app/errors.py`) |
+| 4.01 | Inheritance | ✅ | Repositories inherit `SqlAlchemyRepository`; configs inherit `BaseConfig`; models inherit mixins; `AppError` → `ValidationError`, `AuthenticationError`, `ForbiddenError`, `NotFoundError`, `ConflictError` (`backend/app/errors.py`); `ProductDetail` extends `ProductSummary` (`backend/app/schemas/catalog.py`); `ApiError` extends `Error` (`src/lib/api/client.ts`) |
 | 4.02 | ≥2 exception types handled | ✅ | `backend/app/errors.py` maps the `AppError` family, Pydantic `ValidationError`, SQLAlchemy `IntegrityError`, Flask-WTF `CSRFError`, Werkzeug `HTTPException` and unexpected errors (500) to JSON `{"error": ...}`. Tests: duplicate email → 409, invalid input → 400, guest → 401, unknown route → 404 |
 | 4.03 | Image carousel | ⬜ | |
 | 4.04 | Animation | ⬜ | |
@@ -66,7 +67,7 @@ Counted with: `grep -rE "^class " backend/app | wc -l`
 
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
-| 6.01 | ≥5 unit tests | ✅ | 43 pytest tests in `backend/tests/` |
+| 6.01 | ≥5 unit tests | ✅ | 58 pytest tests in `backend/tests/` |
 | 6.02 | Git | ✅ | GitHub repo `SebiSomu/Site-DAW` |
 | 6.03 | GitHub Actions CI | 🟡 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml): backend tests + frontend check/build. Done once the first run on GitHub is green (screenshot of the Actions tab) |
 
@@ -81,7 +82,7 @@ Counted with: `grep -rE "^class " backend/app | wc -l`
 
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
-| 8.01 | Lighthouse SEO ≥90 | ⬜ | |
+| 8.01 | Lighthouse SEO ≥90 | 🟡 | `Seo.svelte` on every page (unique title, meta description, canonical, Open Graph, `noindex` on 404s); `lang="en"`, viewport meta; crawlable `<a href>` links; `alt` on every image; `/robots.txt` and `/sitemap.xml` generated by Flask (`backend/app/controllers/seo_controller.py`, tests in `backend/tests/test_catalog.py`). Pending: Lighthouse report on the deployed site |
 | 8.02 | Online payments (Stripe) | ⬜ | |
 
 ## Nota 9 — Securitate, nivelul I
@@ -90,7 +91,7 @@ Counted with: `grep -rE "^class " backend/app | wc -l`
 |---|---|:-:|---|
 | 9.01 | CSRF | ✅ | Flask-WTF `CSRFProtect` on every non-GET route; token from `GET /api/csrf` sent as `X-CSRFToken`; SameSite=Lax cookie. Test: `test_post_without_csrf_token_is_rejected` (400 + logged) |
 | 9.02 | XSS | ⬜ | |
-| 9.03 | SQL Injection | 🟡 | ORM-only queries; `test_search_is_safe_against_sql_injection`. Needs the API layer |
+| 9.03 | SQL Injection | ✅ | ORM-only queries with bound parameters, LIKE wildcards escaped (`ProductRepository._escape_like`), query string validated by Pydantic (`ProductQuery`). Tests: `test_search_is_safe_against_sql_injection` (repository) and `test_products_search_is_safe_against_sql_injection` (`GET /api/products?q=' OR 1=1 --` → 200, 0 results) |
 | 9.04 | Max 12 MB upload | ⬜ | |
 | 9.05 | Allowed extensions | ⬜ | |
 

@@ -1,50 +1,70 @@
 <script lang="ts">
-  type ApiStatus = 'checking' | 'connected' | 'unavailable'
+  import { router } from './lib/router/router.svelte'
+  import HomePage from './pages/HomePage.svelte'
+  import NotFoundPage from './pages/NotFoundPage.svelte'
+  import ProductPage from './pages/ProductPage.svelte'
+  import ProductsPage from './pages/ProductsPage.svelte'
 
-  let apiStatus = $state<ApiStatus>('checking')
-
-  $effect(() => {
-    fetch('/api/health')
-      .then((response) => {
-        apiStatus = response.ok ? 'connected' : 'unavailable'
-      })
-      .catch(() => {
-        apiStatus = 'unavailable'
-      })
-  })
+  const path = $derived(router.url.pathname)
+  const productSlug = $derived(path.match(/^\/products\/([^/]+)$/)?.[1])
 </script>
 
+<header class="site-header">
+  <a class="brand" href="/">Mum's Homemade Jams</a>
+  <nav aria-label="Main">
+    <a href="/products">Shop</a>
+  </nav>
+</header>
+
 <main>
-  <h1>Mum's Homemade Jams</h1>
-  <p>The shop is getting ready. The jars are on their way.</p>
-  <p class="status">Server: <strong>{apiStatus}</strong></p>
+  {#if path === '/'}
+    <HomePage />
+  {:else if path === '/products'}
+    <ProductsPage />
+  {:else if productSlug}
+    {#key productSlug}
+      <ProductPage slug={productSlug} />
+    {/key}
+  {:else}
+    <NotFoundPage />
+  {/if}
 </main>
 
 <style>
-  main {
-    min-height: 100vh;
-    display: grid;
-    place-content: center;
-    gap: 0.75rem;
-    padding: 1rem;
-    text-align: center;
+  :global(body) {
+    margin: 0;
     background: #fffaf3;
     color: #3b1f24;
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+  }
+
+  :global(h1, h2, h3) {
     font-family: Georgia, serif;
   }
 
-  h1 {
-    margin: 0;
+  .site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #e6d5c8;
+  }
+
+  .site-header a {
     color: #8b2d3a;
-    font-size: clamp(2rem, 6vw, 3.5rem);
   }
 
-  p {
-    margin: 0;
+  .brand {
+    font-family: Georgia, serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-decoration: none;
   }
 
-  .status {
-    font-family: system-ui, sans-serif;
-    font-size: 0.9rem;
+  main {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 3rem;
   }
 </style>
