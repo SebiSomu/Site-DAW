@@ -35,7 +35,10 @@ Windows (PowerShell):
 cd backend
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
+copy .env.example .env
+flask db upgrade
+flask seed --demo
 cd ..
 ```
 
@@ -45,7 +48,10 @@ macOS / Linux:
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
+cp .env.example .env
+flask db upgrade
+flask seed --demo
 cd ..
 ```
 
@@ -68,15 +74,24 @@ Run these from the project root.
 
 ## Backend commands
 
-Activate the virtual environment first (`.\backend\.venv\Scripts\Activate.ps1` on Windows, `source backend/.venv/bin/activate` on macOS/Linux). The terminal prompt then starts with `(.venv)`.
+Run these from the `backend/` folder with the virtual environment active (`.\.venv\Scripts\Activate.ps1` on Windows, `source .venv/bin/activate` on macOS/Linux). The terminal prompt then starts with `(.venv)`.
+
+Before the first run, edit `backend/.env`: set a long random `SECRET_KEY` and an `ADMIN_PASSWORD` (the admin account is only created when it is set).
 
 | Command | What it does |
 |---|---|
-| `pip install -r backend/requirements.txt` | Installs the Python dependencies (run again after new packages are added) |
-| `pip install <package>` then `pip freeze > backend/requirements.txt` | Adds a new package and saves it to the list |
+| `pip install -r requirements-dev.txt` | Installs app + test dependencies (run again after new packages are added) |
+| `flask db upgrade` | Creates/updates the database in `backend/instance/gemuri.db` |
+| `flask seed` | Adds roles, order statuses, categories, 13 jams and the admin account (safe to run repeatedly) |
+| `flask seed --demo` | Same, plus a demo client `client@exemplu.ro` / `Client-Demo-123` |
+| `flask db migrate -m "describe change"` | Generates a migration after changing a model; review it, then run `flask db upgrade` |
+| `flask db downgrade` | Reverts the last migration |
+| `pytest` | Runs the backend tests |
 | `deactivate` | Leaves the virtual environment |
 
-> The Flask app, database and tests are added in phases 0–1 of `PLAN.md`. The `flask run`, `flask db upgrade`, `python seed.py` and `pytest` commands will be documented here once they exist.
+To start over with an empty database, delete `backend/instance/gemuri.db`, then run `flask db upgrade` and `flask seed --demo`.
+
+The database schema, ER diagram and 3NF explanation are in [`docs/DATABASE.md`](docs/DATABASE.md).
 
 ## Git workflow
 

@@ -1,0 +1,115 @@
+erDiagram
+  ROLES {
+    int id PK
+    varchar name UK
+  }
+  USERS {
+    int id PK
+    varchar email UK
+    varchar password_hash
+    varchar first_name
+    varchar last_name
+    varchar phone
+    int role_id FK
+    datetime created_at
+  }
+  ADDRESSES {
+    int id PK
+    int user_id FK
+    varchar street
+    varchar city
+    varchar county
+    varchar postal_code
+    bool is_archived
+  }
+  CATEGORIES {
+    int id PK
+    varchar name UK
+    varchar slug UK
+    text description
+  }
+  PRODUCTS {
+    int id PK
+    int category_id FK
+    varchar name
+    varchar slug UK
+    text description
+    int price_bani
+    int weight_grams
+    int stock
+    bool is_active
+    datetime created_at
+  }
+  PRODUCT_IMAGES {
+    int id PK
+    int product_id FK
+    varchar filename UK
+    varchar alt_text
+    int position
+  }
+  INGREDIENTS {
+    int id PK
+    varchar name UK
+  }
+  PRODUCT_INGREDIENTS {
+    int product_id PK,FK
+    int ingredient_id PK,FK
+  }
+  ORDER_STATUSES {
+    int id PK
+    varchar code UK
+    varchar name UK
+  }
+  ORDERS {
+    int id PK
+    int user_id FK
+    int address_id FK
+    int status_id FK
+    text notes
+    datetime created_at
+  }
+  ORDER_ITEMS {
+    int order_id PK,FK
+    int product_id PK,FK
+    int quantity
+    int unit_price_bani
+  }
+  PAYMENTS {
+    int id PK
+    int order_id FK,UK
+    varchar provider
+    varchar provider_reference UK
+    int amount_bani
+    varchar status
+    datetime paid_at
+  }
+  REVIEWS {
+    int id PK
+    int user_id FK
+    int product_id FK
+    int rating
+    text comment
+    datetime created_at
+  }
+  CONTACT_MESSAGES {
+    int id PK
+    varchar name
+    varchar email
+    varchar subject
+    text message
+    datetime created_at
+  }
+  ROLES ||--o{ USERS : "are"
+  USERS ||--o{ ADDRESSES : "deține"
+  USERS ||--o{ ORDERS : "plasează"
+  USERS ||--o{ REVIEWS : "scrie"
+  CATEGORIES ||--o{ PRODUCTS : "grupează"
+  PRODUCTS ||--o{ PRODUCT_IMAGES : "are"
+  PRODUCTS ||--o{ PRODUCT_INGREDIENTS : "conține"
+  INGREDIENTS ||--o{ PRODUCT_INGREDIENTS : "apare în"
+  PRODUCTS ||--o{ ORDER_ITEMS : "vândut ca"
+  PRODUCTS ||--o{ REVIEWS : "primește"
+  ORDERS ||--|{ ORDER_ITEMS : "conține"
+  ORDER_STATUSES ||--o{ ORDERS : "descrie"
+  ADDRESSES ||--o{ ORDERS : "livrare la"
+  ORDERS ||--o| PAYMENTS : "plătită prin"

@@ -125,18 +125,20 @@ erDiagram
 | users | **id**, email UNIQUE, password_hash, first_name, last_name, phone, *role_id*, created_at |
 | addresses | **id**, *user_id*, street, city, county, postal_code, is_archived |
 | categories | **id**, name UNIQUE, slug UNIQUE, description |
-| products | **id**, *category_id*, name, slug UNIQUE, description, price, weight_grams, stock, is_active, created_at |
+| products | **id**, *category_id*, name, slug UNIQUE, description, price_bani, weight_grams, stock, is_active, created_at |
 | product_images | **id**, *product_id*, filename, alt_text, position |
 | ingredients | **id**, name UNIQUE |
 | product_ingredients | ***product_id*, *ingredient_id*** (composite PK) |
-| order_statuses | **id**, name UNIQUE (`În așteptarea plății`, `Plătită`, `Confirmată`, `Expediată`, `Livrată`, `Anulată`) |
+| order_statuses | **id**, code UNIQUE, name UNIQUE (`În așteptarea plății`, `Plătită`, `Confirmată`, `Expediată`, `Livrată`, `Anulată`) |
 | orders | **id**, *user_id*, *address_id*, *status_id*, created_at, notes |
-| order_items | ***order_id*, *product_id***, quantity, unit_price |
-| payments | **id**, *order_id* UNIQUE, provider, provider_reference UNIQUE, amount, status, paid_at |
+| order_items | ***order_id*, *product_id***, quantity, unit_price_bani |
+| payments | **id**, *order_id* UNIQUE, provider, provider_reference UNIQUE, amount_bani, status, paid_at |
 | reviews | **id**, *user_id*, *product_id*, rating (1–5, CHECK), comment, created_at; UNIQUE(user_id, product_id) |
 | contact_messages | **id**, name, email, subject, message, created_at |
 
-3NF justification (goes in README):
+Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Money is stored as integer bani (1 leu = 100 bani), matching Stripe's minor units.
+
+3NF justification:
 - No derived data stored: order total = Σ(quantity × unit_price), computed. Average rating computed.
 - `unit_price` in order_items depends on the full key (price at purchase time), not on product alone.
 - Lookups (roles, statuses, categories, ingredients) are separate tables → no repeated text values.
