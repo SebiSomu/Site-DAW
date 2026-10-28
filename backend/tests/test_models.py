@@ -15,23 +15,23 @@ from app.seed import DEMO_CLIENT_EMAIL
 
 def make_user(email: str, role_name: RoleName = RoleName.CLIENT) -> User:
     role = RoleRepository().get_by_name(role_name)
-    user = User(email=email, first_name="Ana", last_name="Pop", role=role)
-    user.set_password("Parola-Sigura-1")
+    user = User(email=email, first_name="Anna", last_name="Pop", role=role)
+    user.set_password("Secure-Password-1")
     return user
 
 
 def test_password_is_hashed_with_scrypt_and_verifies(seeded):
-    user = make_user("ana@exemplu.ro")
+    user = make_user("ana@example.com")
     assert user.password_hash.startswith("scrypt:")
-    assert "Parola-Sigura-1" not in user.password_hash
-    assert user.check_password("Parola-Sigura-1")
-    assert not user.check_password("parola-gresita")
+    assert "Secure-Password-1" not in user.password_hash
+    assert user.check_password("Secure-Password-1")
+    assert not user.check_password("wrong-password")
 
 
 def test_duplicate_email_violates_unique_constraint(seeded, session):
-    session.add(make_user("dublura@exemplu.ro"))
+    session.add(make_user("dublura@example.com"))
     session.commit()
-    session.add(make_user("dublura@exemplu.ro"))
+    session.add(make_user("dublura@example.com"))
     with pytest.raises(IntegrityError):
         session.commit()
     session.rollback()
@@ -41,9 +41,9 @@ def test_foreign_keys_are_enforced(seeded, session):
     session.add(
         Product(
             category_id=9999,
-            name="Gem fantomă",
-            slug="gem-fantoma",
-            description="Nu există categoria.",
+            name="Ghost Jam",
+            slug="ghost-jam",
+            description="The category does not exist.",
             price_bani=1000,
             weight_grams=200,
         )
@@ -54,7 +54,7 @@ def test_foreign_keys_are_enforced(seeded, session):
 
 
 def test_category_with_products_cannot_be_deleted(seeded, session):
-    category = CategoryRepository().get_by_slug("gemuri")
+    category = CategoryRepository().get_by_slug("jams")
     session.delete(category)
     with pytest.raises(IntegrityError):
         session.commit()
@@ -63,7 +63,7 @@ def test_category_with_products_cannot_be_deleted(seeded, session):
 
 @pytest.mark.parametrize("field, value", [("stock", -1), ("price_bani", 0), ("weight_grams", 0)])
 def test_product_check_constraints(seeded, session, field, value):
-    product = ProductRepository().get_by_slug("gem-de-caise")
+    product = ProductRepository().get_by_slug("apricot-jam")
     setattr(product, field, value)
     with pytest.raises(IntegrityError):
         session.commit()
@@ -73,7 +73,7 @@ def test_product_check_constraints(seeded, session, field, value):
 @pytest.mark.parametrize("rating", [0, 6])
 def test_review_rating_must_be_between_one_and_five(seeded, session, rating):
     user = UserRepository().get_by_email(DEMO_CLIENT_EMAIL)
-    product = ProductRepository().get_by_slug("gem-de-caise")
+    product = ProductRepository().get_by_slug("apricot-jam")
     session.add(Review(user=user, product=product, rating=rating, comment="Test"))
     with pytest.raises(IntegrityError):
         session.commit()
@@ -82,10 +82,10 @@ def test_review_rating_must_be_between_one_and_five(seeded, session, rating):
 
 def test_one_review_per_user_and_product(seeded, session):
     user = UserRepository().get_by_email(DEMO_CLIENT_EMAIL)
-    product = ProductRepository().get_by_slug("gem-de-caise")
-    session.add(Review(user=user, product=product, rating=5, comment="Excelent"))
+    product = ProductRepository().get_by_slug("apricot-jam")
+    session.add(Review(user=user, product=product, rating=5, comment="Excellent"))
     session.commit()
-    session.add(Review(user=user, product=product, rating=4, comment="Iar"))
+    session.add(Review(user=user, product=product, rating=4, comment="Again"))
     with pytest.raises(IntegrityError):
         session.commit()
     session.rollback()
@@ -95,8 +95,8 @@ def test_order_total_is_computed_from_items(seeded, session):
     user = UserRepository().get_by_email(DEMO_CLIENT_EMAIL)
     address = AddressRepository().list_active_for_user(user.id)[0]
     products = ProductRepository()
-    apricot = products.get_by_slug("gem-de-caise")
-    plum = products.get_by_slug("magiun-de-prune")
+    apricot = products.get_by_slug("apricot-jam")
+    plum = products.get_by_slug("plum-butter")
     status = OrderStatusRepository().get_by_code(OrderStatusCode.PENDING_PAYMENT)
     order = Order(
         user=user,
@@ -115,14 +115,14 @@ def test_order_total_is_computed_from_items(seeded, session):
 
 
 def test_average_rating_is_computed(seeded, session):
-    product = ProductRepository().get_by_slug("gem-de-zmeura")
+    product = ProductRepository().get_by_slug("raspberry-jam")
     assert product.average_rating is None
     client = UserRepository().get_by_email(DEMO_CLIENT_EMAIL)
-    other = make_user("vecina@exemplu.ro")
+    other = make_user("vecina@example.com")
     session.add_all(
         [
-            Review(user=client, product=product, rating=5, comment="Ca la bunica"),
-            Review(user=other, product=product, rating=4, comment="Foarte bun"),
+            Review(user=client, product=product, rating=5, comment="Just like Grandma's"),
+            Review(user=other, product=product, rating=4, comment="Very good"),
         ]
     )
     session.commit()
@@ -130,9 +130,9 @@ def test_average_rating_is_computed(seeded, session):
 
 
 def test_admin_role_is_detected(seeded, session):
-    admin = make_user("mama@exemplu.ro", RoleName.ADMIN)
+    admin = make_user("mama@example.com", RoleName.ADMIN)
     session.add(admin)
-    client = make_user("client2@exemplu.ro", RoleName.CLIENT)
+    client = make_user("client2@example.com", RoleName.CLIENT)
     session.add(client)
     assert admin.is_admin
     assert not client.is_admin

@@ -9,14 +9,14 @@ def test_repositories_implement_the_interface():
 
 
 def test_search_filters_by_category(seeded):
-    page = ProductRepository().search(category_slug="magiunuri")
+    page = ProductRepository().search(category_slug="fruit-butters")
     assert page.total == 2
-    assert {product.category.slug for product in page.items} == {"magiunuri"}
+    assert {product.category.slug for product in page.items} == {"fruit-butters"}
 
 
-def test_search_matches_name_with_diacritics(seeded):
-    page = ProductRepository().search(query="căpșuni")
-    assert [product.slug for product in page.items] == ["gem-de-capsuni"]
+def test_search_is_case_insensitive(seeded):
+    page = ProductRepository().search(query="STRAWBERRY")
+    assert [product.slug for product in page.items] == ["strawberry-jam"]
 
 
 def test_search_sorts_by_price(seeded):
@@ -43,18 +43,18 @@ def test_search_is_safe_against_sql_injection(seeded):
 
 def test_inactive_products_are_hidden_by_default(seeded, session):
     repository = ProductRepository()
-    product = repository.get_by_slug("gem-de-caise")
+    product = repository.get_by_slug("apricot-jam")
     product.is_active = False
     session.commit()
-    assert repository.get_by_slug("gem-de-caise") is None
-    assert repository.get_by_slug("gem-de-caise", include_inactive=True) is not None
+    assert repository.get_by_slug("apricot-jam") is None
+    assert repository.get_by_slug("apricot-jam", include_inactive=True) is not None
     assert repository.search().total == 12
 
 
 def test_low_stock_list_includes_sold_out(seeded):
     slugs = [product.slug for product in ProductRepository().list_low_stock(threshold=5)]
-    assert slugs[0] == "gem-de-macese"
-    assert "gem-de-caise" not in slugs
+    assert slugs[0] == "rosehip-jam"
+    assert "apricot-jam" not in slugs
 
 
 def test_user_lookup_by_email_is_case_insensitive(seeded):

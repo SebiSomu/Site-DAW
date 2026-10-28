@@ -12,5 +12,5 @@ def health():
     try:
         db.session.execute(text("SELECT 1"))
     except SQLAlchemyError:
-        return jsonify(status="error", database="indisponibilă"), 503
+        return jsonify(status="error", database="unavailable"), 503
     return jsonify(status="ok", database="ok")

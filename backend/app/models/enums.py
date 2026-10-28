@@ -16,12 +16,12 @@ class OrderStatusCode(str, Enum):
 
 
 ORDER_STATUS_LABELS: dict[OrderStatusCode, str] = {
-    OrderStatusCode.PENDING_PAYMENT: "În așteptarea plății",
-    OrderStatusCode.PAID: "Plătită",
-    OrderStatusCode.CONFIRMED: "Confirmată",
-    OrderStatusCode.SHIPPED: "Expediată",
-    OrderStatusCode.DELIVERED: "Livrată",
-    OrderStatusCode.CANCELLED: "Anulată",
+    OrderStatusCode.PENDING_PAYMENT: "Awaiting payment",
+    OrderStatusCode.PAID: "Paid",
+    OrderStatusCode.CONFIRMED: "Confirmed",
+    OrderStatusCode.SHIPPED: "Shipped",
+    OrderStatusCode.DELIVERED: "Delivered",
+    OrderStatusCode.CANCELLED: "Cancelled",
 }
 
 CANCELLABLE_STATUSES = frozenset(

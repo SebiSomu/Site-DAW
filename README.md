@@ -1,6 +1,6 @@
-# Gemuri ca la mama acasă
+# Mum's Homemade Jams
 
-Online shop for mum's homemade jams. Frontend in **Svelte 5 + Vite + TypeScript**, backend in **Flask (Python)**. All text on the site is in Romanian.
+Online shop for mum's homemade jams. Frontend in **Svelte 5 + Vite + TypeScript**, backend in **Flask (Python)**. All site content is in English; prices are in lei (RON).
 
 - Project plan: [`PLAN.md`](PLAN.md)
 - Grading rubric: [`Barem_evaluare_proiect_web.md`](Barem_evaluare_proiect_web.md)
@@ -141,7 +141,7 @@ Rules:
 - Never commit `.env`, `node_modules/`, `backend/.venv/`, databases or logs (they're already in `.gitignore`).
 - Run `npm run check` and `npm run build` before pushing.
 - No comments in code; explanations go in the Pull Request or the README.
-- Site text is in Romanian with correct diacritics (ș, ț with comma below).
+- All site text is in English. Prices are shown as `24.50 lei`.
 
 ## Common problems
 

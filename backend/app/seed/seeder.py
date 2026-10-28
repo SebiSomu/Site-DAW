@@ -23,7 +23,7 @@ from app.repositories import (
 )
 from app.seed.data import CATEGORIES, PRODUCTS
 
-DEMO_CLIENT_EMAIL = "client@exemplu.ro"
+DEMO_CLIENT_EMAIL = "client@example.com"
 DEMO_CLIENT_PASSWORD = "Client-Demo-123"
 
 
@@ -111,7 +111,7 @@ class DatabaseSeeder:
             return
         client = self._create_user(DEMO_CLIENT_EMAIL, DEMO_CLIENT_PASSWORD, "Andrei", "Ionescu", RoleName.CLIENT)
         client.addresses.append(
-            Address(street="Str. Republicii nr. 10", city="Brașov", county="Brașov", postal_code="500030")
+            Address(street="10 Republicii Street", city="Brașov", county="Brașov", postal_code="500030")
         )
 
     def _create_user(self, email: str, password: str, first_name: str, last_name: str, role_name: RoleName) -> User:

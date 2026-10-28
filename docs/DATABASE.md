@@ -13,12 +13,12 @@ Source: [`database.mmd`](database.mmd) (Mermaid) · Vector: [`database.svg`](dat
 | `roles` | `client`, `admin` |
 | `users` | Accounts; password stored as scrypt hash |
 | `addresses` | Delivery addresses; archived instead of edited once used by an order |
-| `categories` | Gemuri, Dulcețuri, Magiunuri, Ediții de sezon |
+| `categories` | Jams, Preserves, Fruit Butters, Seasonal Editions |
 | `products` | Jars on sale; price in bani (integer), stock, active flag |
 | `product_images` | Ordered images per product, with alt text |
 | `ingredients` | Shared ingredient list |
 | `product_ingredients` | Many-to-many between products and ingredients |
-| `order_statuses` | Stable `code` + Romanian display `name` |
+| `order_statuses` | Stable `code` used by the code + display `name` shown on the site |
 | `orders` | Who ordered, where it ships, current status |
 | `order_items` | Products in an order, with the price at purchase time |
 | `payments` | Stripe payment for an order (one per order) |

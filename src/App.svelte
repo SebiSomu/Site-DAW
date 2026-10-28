@@ -1,22 +1,22 @@
 <script lang="ts">
-  type ApiStatus = 'se verifică' | 'conectat' | 'indisponibil'
+  type ApiStatus = 'checking' | 'connected' | 'unavailable'
 
-  let apiStatus = $state<ApiStatus>('se verifică')
+  let apiStatus = $state<ApiStatus>('checking')
 
   $effect(() => {
     fetch('/api/health')
       .then((response) => {
-        apiStatus = response.ok ? 'conectat' : 'indisponibil'
+        apiStatus = response.ok ? 'connected' : 'unavailable'
       })
       .catch(() => {
-        apiStatus = 'indisponibil'
+        apiStatus = 'unavailable'
       })
   })
 </script>
 
 <main>
-  <h1>Gemuri ca la mama acasă</h1>
-  <p>Magazinul se pregătește. Borcanele sunt pe drum.</p>
+  <h1>Mum's Homemade Jams</h1>
+  <p>The shop is getting ready. The jars are on their way.</p>
   <p class="status">Server: <strong>{apiStatus}</strong></p>
 </main>
 

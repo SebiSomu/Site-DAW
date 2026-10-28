@@ -4,7 +4,7 @@ import App from './App.svelte'
 const target = document.getElementById('app')
 
 if (!target) {
-  throw new Error('Elementul #app lipsește din index.html')
+  throw new Error('The #app element is missing from index.html')
 }
 
 export default mount(App, { target })

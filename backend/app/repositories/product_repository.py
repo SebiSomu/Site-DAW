@@ -10,10 +10,10 @@ from app.repositories.base import SqlAlchemyRepository
 
 
 class ProductSort(str, Enum):
-    NEWEST = "noi"
-    PRICE_ASC = "pret-crescator"
-    PRICE_DESC = "pret-descrescator"
-    NAME = "nume"
+    NEWEST = "newest"
+    PRICE_ASC = "price-asc"
+    PRICE_DESC = "price-desc"
+    NAME = "name"
 
 
 @dataclass(frozen=True)

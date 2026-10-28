@@ -22,9 +22,9 @@ def test_seed_is_idempotent(app, session):
 def test_ingredients_are_shared_not_duplicated(app, session):
     DatabaseSeeder().run()
     repository = ProductRepository()
-    caise = repository.get_by_slug("gem-de-caise")
-    capsuni = repository.get_by_slug("gem-de-capsuni")
-    shared = {i.id for i in caise.ingredients} & {i.id for i in capsuni.ingredients}
+    apricot = repository.get_by_slug("apricot-jam")
+    strawberry = repository.get_by_slug("strawberry-jam")
+    shared = {i.id for i in apricot.ingredients} & {i.id for i in strawberry.ingredients}
     assert len(shared) == 2
 
 

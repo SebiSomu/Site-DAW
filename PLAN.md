@@ -1,6 +1,6 @@
-# Gemuri ca la mama acasă — Plan de proiect
+# Mum's Homemade Jams — Project plan
 
-E-commerce site for selling mum's homemade jams. All UI copy in Romanian.
+E-commerce site for selling mum's homemade jams. All site content is in English; prices are in lei (RON).
 Goal: satisfy **every** criterion in `Barem_evaluare_proiect_web.md` (grade 10/10), with visible proof for each.
 
 ---
@@ -129,7 +129,7 @@ erDiagram
 | product_images | **id**, *product_id*, filename, alt_text, position |
 | ingredients | **id**, name UNIQUE |
 | product_ingredients | ***product_id*, *ingredient_id*** (composite PK) |
-| order_statuses | **id**, code UNIQUE, name UNIQUE (`În așteptarea plății`, `Plătită`, `Confirmată`, `Expediată`, `Livrată`, `Anulată`) |
+| order_statuses | **id**, code UNIQUE, name UNIQUE (`Awaiting payment`, `Paid`, `Confirmed`, `Shipped`, `Delivered`, `Cancelled`) |
 | orders | **id**, *user_id*, *address_id*, *status_id*, created_at, notes |
 | order_items | ***order_id*, *product_id***, quantity, unit_price_bani |
 | payments | **id**, *order_id* UNIQUE, provider, provider_reference UNIQUE, amount_bani, status, paid_at |
@@ -155,35 +155,35 @@ Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Mone
 | UC2 | Visitor / Client | Cart: add, change quantity, remove, see total |
 | UC3 | Visitor | Register (CAPTCHA), log in (CAPTCHA after failures / always), log out |
 | UC4 | Client | Checkout: choose/add address → pay by card (Stripe) → order confirmation |
-| UC5 | Client | "Comenzile mele": order history table, order detail, cancel a not-yet-shipped order |
+| UC5 | Client | "My orders": order history table, order detail, cancel a not-yet-shipped order |
 | UC6 | Client | Leave a review (1–5 ★ + comment) on a product they bought |
 | UC7 | Visitor | Contact form (CAPTCHA) |
 | UC8 | Admin (mama) | Product CRUD with image upload, stock management, order status updates, view messages, view activity log |
 
 ---
 
-## 5. Pages & routes (Romanian URLs)
+## 5. Pages & routes
 
 | Route | Page | Access |
 |---|---|---|
-| `/` | Acasă — hero **carousel**, featured jams, "Povestea mamei" teaser, testimonials | public |
-| `/produse` | Catalog with filters | public |
-| `/produse/:slug` | Product detail (gallery, **nutrition table**, ingredients, reviews) | public |
-| `/cos` | Coșul meu | public |
-| `/finalizare-comanda` | Checkout | client |
-| `/comanda/succes`, `/comanda/anulata` | Stripe return pages | client |
-| `/autentificare`, `/inregistrare` | Login / Register | guests only |
-| `/contul-meu` | Profile + addresses | client |
-| `/contul-meu/comenzi` | Order history | client |
-| `/despre-noi` | Mum's story, photos, optional audio clip | public |
+| `/` | Home — hero **carousel**, featured jams, "Mum's story" teaser, testimonials | public |
+| `/products` | Catalogue with filters | public |
+| `/products/:slug` | Product detail (gallery, **nutrition table**, ingredients, reviews) | public |
+| `/cart` | Shopping cart | public |
+| `/checkout` | Checkout | client |
+| `/checkout/success`, `/checkout/cancelled` | Stripe return pages | client |
+| `/login`, `/register` | Login / Register | guests only |
+| `/account` | Profile + addresses | client |
+| `/account/orders` | Order history | client |
+| `/about` | Mum's story, photos, optional audio clip | public |
 | `/contact` | Contact form + map link | public |
-| `/termeni`, `/confidentialitate`, `/livrare` | Legal / delivery info (links in footer, ANPC/SAL links) | public |
+| `/terms`, `/privacy`, `/delivery` | Legal / delivery info (links in footer, ANPC/SAL links) | public |
 | `/admin` | Dashboard (sales, low-stock table) | admin |
-| `/admin/produse`, `/admin/produse/nou`, `/admin/produse/:id` | Product CRUD + upload | admin |
-| `/admin/comenzi` | Orders + status changes | admin |
-| `/admin/mesaje` | Contact messages | admin |
-| `/admin/jurnal` | Activity log viewer (filter by user/action/date) | admin |
-| `*` | 404 "Borcanul ăsta e gol" | public |
+| `/admin/products`, `/admin/products/new`, `/admin/products/:id` | Product CRUD + upload | admin |
+| `/admin/orders` | Orders + status changes | admin |
+| `/admin/messages` | Contact messages | admin |
+| `/admin/activity-log` | Activity log viewer (filter by user/action/date) | admin |
+| `*` | 404 "This jar is empty" | public |
 
 ---
 
@@ -220,7 +220,7 @@ Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Mone
 | 2.01 DB 3NF | Schema in §3, migrations | ER diagram + 3NF section in README |
 | 2.02 ≥4 use cases | UC1–UC8 | Demo script |
 | 2.03 Architecture | MVC + Repository + Service | Folder tree + diagram in README |
-| 2.04 Content/multimedia | Images (products, carousel), text, **tables** (nutrition, orders, admin), links (nav, footer, legal); optional audio on "Despre noi" | Pages |
+| 2.04 Content/multimedia | Images (products, carousel), text, **tables** (nutrition, orders, admin), links (nav, footer, legal); optional audio on the About page | Pages |
 
 ### Nota 3 — OOP & access control
 | Criterion | Implementation |
@@ -234,7 +234,7 @@ Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Mone
 | Criterion | Implementation |
 |---|---|
 | 4.01 Inheritance | `SqlAlchemyRepository` → `ProductRepository`, `OrderRepository`…; `AppError` → `NotFoundError`, `ValidationError`, `ForbiddenError`, `OutOfStockError`, `PaymentError`, `UploadError`; `BaseConfig` → `DevConfig`/`TestConfig`/`ProdConfig`; `StripeGateway`/`FakeGateway` → `PaymentGateway` |
-| 4.02 ≥2 exception types | Custom hierarchy above + `IntegrityError`, `stripe.error.StripeError`, `PIL.UnidentifiedImageError`, `RequestEntityTooLarge`, `pydantic.ValidationError` — all caught and mapped to JSON errors with Romanian messages; frontend `ApiError` handling with toasts |
+| 4.02 ≥2 exception types | Custom hierarchy above + `IntegrityError`, `stripe.error.StripeError`, `PIL.UnidentifiedImageError`, `RequestEntityTooLarge`, `pydantic.ValidationError` — all caught and mapped to JSON errors with clear English messages; frontend `ApiError` handling with toasts |
 | 4.03 Carousel | `Carousel.svelte` on home: autoplay, prev/next, dots, swipe on mobile, keyboard arrows, pause on hover, `aria-live` |
 | 4.04 Animation | CSS `@keyframes` (jar lid "pop" on add-to-cart, fade-in-up of cards on scroll), Svelte `fly`/`fade` transitions (cart drawer, toasts), cart badge bounce; all honour `prefers-reduced-motion` |
 
@@ -254,14 +254,14 @@ Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Mone
 ### Nota 7 — Monitoring & hosting
 | Criterion | Implementation |
 |---|---|
-| 7.01 Logging | `ActivityLogger` → `logs/activity.log` (RotatingFileHandler, 1 MB × 5). Format: `timestamp | level | ip | user_id | action | details`. Logged: register, login ok/failed, logout, cart validate, order created/cancelled, payment success/failure, review posted, contact message, admin CRUD, order status change, rejected uploads, rate-limit hits, CSRF failures. Viewable in `/admin/jurnal` |
+| 7.01 Logging | `ActivityLogger` → `logs/activity.log` (RotatingFileHandler, 1 MB × 5). Format: `timestamp | level | ip | user_id | action | details`. Logged: register, login ok/failed, logout, cart validate, order created/cancelled, payment success/failure, review posted, contact message, admin CRUD, order status change, rejected uploads, rate-limit hits, CSRF failures. Viewable in `/admin/activity-log` |
 | 7.02 Hosting | Azure VM + Apache + mod_wsgi + HTTPS (see §9) |
 
 ### Nota 8 — SEO & payments
 | Criterion | Implementation |
 |---|---|
-| 8.01 Lighthouse SEO ≥90 | `<html lang="ro">`, unique `<title>` + meta description per page (`Seo.svelte`), canonical, Open Graph, `robots.txt`, `sitemap.xml`, descriptive link text, `alt` on every image, real `<a href>` links (crawlable), legible font sizes, viewport meta, HTTPS, JSON-LD `Product`/`Organization`. Target 100 |
-| 8.02 Online payments | Stripe Checkout Session in RON; webhook `checkout.session.completed` → order `Plătită`, payment row, stock decrement; cancel URL returns to cart. Demo with test card `4242 4242 4242 4242` |
+| 8.01 Lighthouse SEO ≥90 | `<html lang="en">`, unique `<title>` + meta description per page (`Seo.svelte`), canonical, Open Graph, `robots.txt`, `sitemap.xml`, descriptive link text, `alt` on every image, real `<a href>` links (crawlable), legible font sizes, viewport meta, HTTPS, JSON-LD `Product`/`Organization`. Target 100 |
+| 8.02 Online payments | Stripe Checkout Session in RON; webhook `checkout.session.completed` → order `Paid`, payment row, stock decrement; cancel URL returns to cart. Demo with test card `4242 4242 4242 4242` |
 
 ### Nota 9 — Security I
 | Criterion | Implementation | Proof |
@@ -294,7 +294,7 @@ Backend (pytest, `TestConfig` with in-memory SQLite, `FakeGateway`, CAPTCHA mock
 6. Order rejected when quantity > stock (`OutOfStockError`)
 7. Cancel allowed only before shipping
 8. Review only allowed for purchased products; one per product
-9. Webhook with valid fake event → order `Plătită`, stock decreased
+9. Webhook with valid fake event → order `Paid`, stock decreased
 10. Webhook with bad signature → 400
 11. POST without CSRF token → 400
 12. Upload > 12 MB → 413
@@ -306,7 +306,7 @@ Backend (pytest, `TestConfig` with in-memory SQLite, `FakeGateway`, CAPTCHA mock
 18. 101st request in a minute → 429
 19. Activity log line written on login
 
-Frontend (Vitest): CartStore add/update/remove/total, persistence, ApiClient error mapping, price formatting (`12,50 lei`).
+Frontend (Vitest): CartStore add/update/remove/total, persistence, ApiClient error mapping, price formatting (`24.50 lei`).
 
 ---
 
@@ -330,7 +330,7 @@ Free services used: Azure for Students, Let's Encrypt, Stripe test mode, Cloudfl
 
 - Warm, homemade, elegant: cream background, deep jam reds/plum, apricot/amber accents, kraft-paper and gingham touches, hand-drawn label feel.
 - Fonts: a serif display font for headings (e.g. Playfair Display / Fraunces), clean sans for body (e.g. Nunito / Source Sans 3) — self-hosted for CSP and performance.
-- Copy tone: grandmotherly warmth ("Făcute cu drag, în ceaun, ca pe vremuri").
+- Copy tone: grandmotherly warmth ("Made with love, in a copper pot, the old-fashioned way").
 - Accessibility: contrast AA, focus styles, keyboard navigation, `alt` text, form labels.
 
 ---
