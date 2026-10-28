@@ -1,5 +1,7 @@
 import os
 
+BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 class BaseConfig:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-insecure-key")
@@ -8,6 +10,11 @@ class BaseConfig:
     JSON_AS_ASCII = False
     ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@example.com")
     ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SECURE = False
+    WTF_CSRF_TIME_LIMIT = None
+    ACTIVITY_LOG_PATH = os.environ.get("ACTIVITY_LOG_PATH") or os.path.join(BACKEND_DIR, "logs", "activity.log")
     TESTING = False
     DEBUG = False
 
@@ -24,7 +31,7 @@ class TestingConfig(BaseConfig):
 
 
 class ProductionConfig(BaseConfig):
-    pass
+    SESSION_COOKIE_SECURE = True
 
 
 CONFIGS: dict[str, type[BaseConfig]] = {

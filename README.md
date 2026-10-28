@@ -78,7 +78,7 @@ Terminal 2, frontend (from the project root):
 npm run dev
 ```
 
-Open http://localhost:5173. Vite forwards every `/api/*` and `/uploads/*` request to Flask on http://127.0.0.1:5000, so the frontend never needs the backend URL. The home page shows `Server: conectat` when both are running.
+Open http://localhost:5173. Vite forwards every `/api/*` and `/uploads/*` request to Flask on http://127.0.0.1:5000, so the frontend never needs the backend URL. The home page shows `Server: connected` when both are running.
 
 ## Frontend commands
 
@@ -102,7 +102,7 @@ Before the first run, edit `backend/.env`: set a long random `SECRET_KEY` and an
 | `pip install -r requirements-dev.txt` | Installs app + test dependencies (run again after new packages are added) |
 | `flask db upgrade` | Creates/updates the database in `backend/instance/gemuri.db` |
 | `flask seed` | Adds roles, order statuses, categories, 13 jams and the admin account (safe to run repeatedly) |
-| `flask seed --demo` | Same, plus a demo client `client@exemplu.ro` / `Client-Demo-123` |
+| `flask seed --demo` | Same, plus a demo client `client@example.com` / `Client-Demo-123` |
 | `flask db migrate -m "describe change"` | Generates a migration after changing a model; review it, then run `flask db upgrade` |
 | `flask db downgrade` | Reverts the last migration |
 | `flask run` | Starts the API at http://127.0.0.1:5000 (health check: `/api/health`) |
@@ -112,6 +112,32 @@ Before the first run, edit `backend/.env`: set a long random `SECRET_KEY` and an
 To start over with an empty database, delete `backend/instance/gemuri.db`, then run `flask db upgrade` and `flask seed --demo`.
 
 The database schema, ER diagram and 3NF explanation are in [`docs/DATABASE.md`](docs/DATABASE.md).
+
+## Authentication API
+
+Sessions use a Flask-Login cookie (HttpOnly, SameSite=Lax, Secure in production). Every `POST`/`PUT`/`PATCH`/`DELETE` needs the CSRF token: get it once from `GET /api/csrf` and send it in the `X-CSRFToken` header.
+
+| Method | Endpoint | Access | Result |
+|---|---|---|---|
+| GET | `/api/csrf` | public | `{"csrf_token": "..."}` |
+| POST | `/api/auth/register` | public | `201 {"user": {...}}`, logged in as `client` |
+| POST | `/api/auth/login` | public | `200 {"user": {...}}` or `401` |
+| POST | `/api/auth/logout` | logged in | `204` |
+| GET | `/api/auth/me` | logged in | `200 {"user": {...}}` or `401` |
+
+Register body: `email`, `password` (8–128 characters), `first_name`, `last_name`, optional `phone`. Unknown fields are rejected.
+
+Every error is JSON `{"error": "<message>"}` with the matching status: `400` invalid data or missing CSRF token, `401` not logged in, `403` wrong role, `404`, `409` duplicate data, `500`. Admin-only endpoints use the `@role_required(RoleName.ADMIN)` decorator from `app/security/`.
+
+### Activity log
+
+User actions are written to `backend/logs/activity.log` (gitignored, rotated at 1 MB, 5 backups; change the path with `ACTIVITY_LOG_PATH` in `.env`). One line per action:
+
+```
+2026-10-28 17:40:02,114 | INFO | 127.0.0.1 | 2 | login | email=client@example.com
+```
+
+Logged so far: `register`, `login`, `login_failed`, `logout`, `access_denied`, `csrf_rejected`.
 
 ## Continuous integration
 
@@ -150,6 +176,6 @@ Rules:
 | `git push` rejected with `non-fast-forward` | `git pull --rebase origin main`, then `git push` |
 | `npm` is not recognized | Install Node.js and reopen the terminal |
 | `python` opens the Microsoft Store | Install Python from python.org and tick "Add python.exe to PATH" |
-| `Server: indisponibil` on the home page | Flask isn't running: start it with `flask run` in `backend/` |
+| `Server: unavailable` on the home page | Flask isn't running: start it with `flask run` in `backend/` |
 | Many files show as modified after pulling `.gitattributes` | Run `git add --renormalize .` once and commit it (line endings are now normalized to LF) |
 | Port 5173 is busy | Vite picks another port automatically; use the address shown in the terminal |

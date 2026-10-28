@@ -1,3 +1,4 @@
+from flask_login import UserMixin
 from sqlalchemy import Boolean, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -18,7 +19,7 @@ class Role(IdMixin, db.Model):
         return f"<Role {self.name}>"
 
 
-class User(IdMixin, TimestampMixin, db.Model):
+class User(UserMixin, IdMixin, TimestampMixin, db.Model):
     __tablename__ = "users"
 
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)

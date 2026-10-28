@@ -10,17 +10,17 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 |---|---|:-:|---|
 | 2.01 | Database in 3NF | ✅ | [`docs/DATABASE.md`](DATABASE.md), ER diagram, `backend/tests/test_models.py` |
 | 2.02 | ≥4 use cases | ⬜ | |
-| 2.03 | MVC / Repository | 🟡 | Models + Repository layer done (`backend/app/models/`, `backend/app/repositories/`); controllers started (`backend/app/controllers/`); views pending |
+| 2.03 | MVC / Repository | 🟡 | Models + Repository layer (`backend/app/models/`, `backend/app/repositories/`), Service layer (`backend/app/services/`), Controllers (`backend/app/controllers/`); Svelte views pending |
 | 2.04 | Images, text, tables, links | ⬜ | |
 
 ## Nota 3 — Programare orientată pe obiecte și controlul accesului
 
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
-| 3.01 | ≥3 classes | ✅ | 43 backend classes, see below |
-| 3.02 | ≥1 interface | ⬜ | |
-| 3.03 | Authentication | ⬜ | |
-| 3.04 | Authorization | ⬜ | |
+| 3.01 | ≥3 classes | ✅ | 55 backend classes, see below |
+| 3.02 | ≥1 interface | ✅ | `IRepository` (ABC with abstract methods) in `backend/app/repositories/base.py`, implemented through `SqlAlchemyRepository` by every repository. `PaymentGateway` and `FileValidator` come in phases 6–7 |
+| 3.03 | Authentication | ✅ | `/api/auth/register`, `/login`, `/logout`, `/me` (`backend/app/controllers/auth_controller.py` → `AuthService`); Flask-Login session cookie (HttpOnly, SameSite=Lax, Secure in prod); scrypt hashes. Tests: `backend/tests/test_auth.py` |
+| 3.04 | Authorization | 🟡 | Roles `client`/`admin`; `@login_required` and `@role_required(RoleName.ADMIN)` (`backend/app/security/access.py`): guest → 401, client → 403, admin → 200 (`test_role_required_enforces_admin_role`). Pending: ownership checks on orders (phase 5), frontend route guards (UX only) |
 
 ### 3.01 — Classes
 
@@ -31,7 +31,9 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 | Enumerations | `RoleName`, `OrderStatusCode`, `PaymentStatus`, `PaymentProvider`, `ProductSort` | `backend/app/models/enums.py`, `backend/app/repositories/product_repository.py` |
 | Repositories | `SqlAlchemyRepository`, `UserRepository`, `AddressRepository`, `RoleRepository`, `CategoryRepository`, `IngredientRepository`, `ProductRepository`, `OrderRepository`, `OrderStatusRepository`, `PaymentRepository`, `ReviewRepository`, `ContactMessageRepository` | `backend/app/repositories/` |
 | Value objects | `ProductPage`, `SeedReport`, `CategorySeed`, `ProductSeed` | `backend/app/repositories/product_repository.py`, `backend/app/seed/` |
-| Services | `DatabaseSeeder` | `backend/app/seed/seeder.py` |
+| Services | `AuthService`, `ActivityLogger`, `DatabaseSeeder` | `backend/app/services/`, `backend/app/seed/seeder.py` |
+| Errors | `AppError`, `ValidationError`, `AuthenticationError`, `ForbiddenError`, `NotFoundError`, `ConflictError` | `backend/app/errors.py` |
+| Request/response schemas | `RequestSchema`, `RegisterRequest`, `LoginRequest`, `UserResponse` | `backend/app/schemas/auth.py` |
 | Configuration | `BaseConfig`, `DevelopmentConfig`, `TestingConfig`, `ProductionConfig` | `backend/app/config.py` |
 
 Classes with real behaviour, good to show the teacher:
@@ -48,8 +50,8 @@ Counted with: `grep -rE "^class " backend/app | wc -l`
 
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
-| 4.01 | Inheritance | 🟡 | Repositories inherit `SqlAlchemyRepository`; configs inherit `BaseConfig`; models inherit mixins. Exception hierarchy pending |
-| 4.02 | ≥2 exception types handled | ⬜ | |
+| 4.01 | Inheritance | ✅ | Repositories inherit `SqlAlchemyRepository`; configs inherit `BaseConfig`; models inherit mixins; `AppError` → `ValidationError`, `AuthenticationError`, `ForbiddenError`, `NotFoundError`, `ConflictError` (`backend/app/errors.py`) |
+| 4.02 | ≥2 exception types handled | ✅ | `backend/app/errors.py` maps the `AppError` family, Pydantic `ValidationError`, SQLAlchemy `IntegrityError`, Flask-WTF `CSRFError`, Werkzeug `HTTPException` and unexpected errors (500) to JSON `{"error": ...}`. Tests: duplicate email → 409, invalid input → 400, guest → 401, unknown route → 404 |
 | 4.03 | Image carousel | ⬜ | |
 | 4.04 | Animation | ⬜ | |
 
@@ -64,7 +66,7 @@ Counted with: `grep -rE "^class " backend/app | wc -l`
 
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
-| 6.01 | ≥5 unit tests | ✅ | 27 pytest tests in `backend/tests/` |
+| 6.01 | ≥5 unit tests | ✅ | 43 pytest tests in `backend/tests/` |
 | 6.02 | Git | ✅ | GitHub repo `SebiSomu/Site-DAW` |
 | 6.03 | GitHub Actions CI | 🟡 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml): backend tests + frontend check/build. Done once the first run on GitHub is green (screenshot of the Actions tab) |
 
@@ -72,7 +74,7 @@ Counted with: `grep -rE "^class " backend/app | wc -l`
 
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
-| 7.01 | Activity log file | ⬜ | |
+| 7.01 | Activity log file | 🟡 | `ActivityLogger` (`backend/app/services/activity_logger.py`) → `backend/logs/activity.log`, `timestamp \| level \| ip \| user_id \| action \| details`, rotating 1 MB × 5. Logs register, login, login_failed, logout, access_denied, csrf_rejected. Pending: order/review/admin actions and the admin log viewer (phase 7) |
 | 7.02 | Hosting | ⬜ | |
 
 ## Nota 8 — Optimizare și integrarea serviciilor externe
@@ -86,7 +88,7 @@ Counted with: `grep -rE "^class " backend/app | wc -l`
 
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
-| 9.01 | CSRF | ⬜ | |
+| 9.01 | CSRF | ✅ | Flask-WTF `CSRFProtect` on every non-GET route; token from `GET /api/csrf` sent as `X-CSRFToken`; SameSite=Lax cookie. Test: `test_post_without_csrf_token_is_rejected` (400 + logged) |
 | 9.02 | XSS | ⬜ | |
 | 9.03 | SQL Injection | 🟡 | ORM-only queries; `test_search_is_safe_against_sql_injection`. Needs the API layer |
 | 9.04 | Max 12 MB upload | ⬜ | |

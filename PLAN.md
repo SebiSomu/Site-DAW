@@ -63,7 +63,7 @@ backend/
     controllers/           # blueprints: auth, products, categories, cart, orders, payments,
                            # reviews, contact, admin
     schemas/               # Pydantic request/response schemas
-    security/              # decorators (@role_required), headers, sanitization
+    security/              # access.py: user loader, 401 handler, @role_required; later headers, sanitization
   migrations/
   tests/
   uploads/                 # served by Apache, has its own .htaccess
@@ -233,7 +233,7 @@ Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Mone
 ### Nota 4 — OOP concepts & interactivity
 | Criterion | Implementation |
 |---|---|
-| 4.01 Inheritance | `SqlAlchemyRepository` → `ProductRepository`, `OrderRepository`…; `AppError` → `NotFoundError`, `ValidationError`, `ForbiddenError`, `OutOfStockError`, `PaymentError`, `UploadError`; `BaseConfig` → `DevConfig`/`TestConfig`/`ProdConfig`; `StripeGateway`/`FakeGateway` → `PaymentGateway` |
+| 4.01 Inheritance | `SqlAlchemyRepository` → `ProductRepository`, `OrderRepository`…; `AppError` → `ValidationError`, `AuthenticationError`, `ForbiddenError`, `NotFoundError`, `ConflictError` (done), `OutOfStockError`, `PaymentError`, `UploadError` (later phases); `BaseConfig` → `DevelopmentConfig`/`TestingConfig`/`ProductionConfig`; `StripeGateway`/`FakeGateway` → `PaymentGateway` |
 | 4.02 ≥2 exception types | Custom hierarchy above + `IntegrityError`, `stripe.error.StripeError`, `PIL.UnidentifiedImageError`, `RequestEntityTooLarge`, `pydantic.ValidationError` — all caught and mapped to JSON errors with clear English messages; frontend `ApiError` handling with toasts |
 | 4.03 Carousel | `Carousel.svelte` on home: autoplay, prev/next, dots, swipe on mobile, keyboard arrows, pause on hover, `aria-live` |
 | 4.04 Animation | CSS `@keyframes` (jar lid "pop" on add-to-cart, fade-in-up of cards on scroll), Svelte `fly`/`fade` transitions (cart drawer, toasts), cart badge bounce; all honour `prefers-reduced-motion` |
@@ -285,7 +285,7 @@ Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Mone
 
 ## 8. Test plan (Barem 6.01)
 
-Backend (pytest, `TestConfig` with in-memory SQLite, `FakeGateway`, CAPTCHA mocked):
+Backend (pytest, `TestingConfig` with in-memory SQLite, `FakeGateway`, CAPTCHA mocked):
 1. Password is hashed and verifies correctly
 2. Login with wrong password → 401, logged as failed
 3. Client accessing `/api/admin/*` → 403; guest → 401
@@ -339,9 +339,9 @@ Free services used: Azure for Students, Let's Encrypt, Stripe test mode, Cloudfl
 
 | Phase | Work | Barem covered |
 |---|---|---|
-| 0. Setup | Repo hygiene, `requirements.txt`, Flask app factory, Vite proxy `/api` → Flask, CI skeleton | 6.02, 6.03 |
-| 1. Data | Models, migrations, seed (categories, ~10 jams, admin), repositories | 2.01, 2.03, 3.01, 3.02, 4.01 |
-| 2. Auth | Register/login/logout, roles, decorators, CSRF, error hierarchy, logging | 3.03, 3.04, 4.02, 7.01, 9.01 |
+| 0. Setup ✅ | Repo hygiene, `requirements.txt`, Flask app factory, Vite proxy `/api` → Flask, CI skeleton | 6.02, 6.03 |
+| 1. Data ✅ | Models, migrations, seed (categories, ~10 jams, admin), repositories | 2.01, 2.03, 3.01, 3.02, 4.01 |
+| 2. Auth ✅ | Register/login/logout, roles, decorators, CSRF, error hierarchy, logging (backend only; login/register pages come with phase 4–5 UI). CAPTCHA and login rate limit stay in phase 8 | 3.03, 3.04, 4.02, 7.01, 9.01 |
 | 3. Catalogue | Product API + pages, filters, search, product detail, SEO component | 2.02, 2.04, 8.01 |
 | 4. UI shell | Styles (5 CSS files), header/footer, responsive nav, carousel, animations | 4.03, 4.04, 5.01, 5.02 |
 | 5. Cart & orders | CartStore, checkout, addresses, order history, cancel, reviews | 2.02 |
