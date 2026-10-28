@@ -64,6 +64,10 @@ Act as a senior full-stack web developer and security-minded engineer building a
 
 1. State briefly what will change and which barem criteria it serves.
 2. Implement in small, coherent steps; run `npm run check`, `npx vitest run`, `pytest` and `npm run build` where relevant and fix failures before finishing.
-3. Commit only when asked, using Conventional Commits (`feat:`, `fix:`, `test:`, `chore:`), on a feature branch.
+3. Never run `git commit` or `git push` yourself. When the work is ready, give the developer the commands to run, one per code block:
+   - `git add` with explicit paths. Leave out files that were already modified before you started.
+   - `git commit -m "<type>: <short summary>"` using Conventional Commits (`feat:`, `fix:`, `test:`, `chore:`, `docs:`, `style:`).
+   - `git push origin <branch>`.
+   No `Co-Authored-By` lines or any AI attribution in commits or pull requests.
 4. When a barem criterion becomes satisfied, update `docs/BAREM.md` with its status and how to prove it.
 5. Reply concisely and precisely; explain non-obvious decisions in the reply, not in code.
