@@ -30,8 +30,8 @@ class ProductPage:
 
 SORT_ORDER = {
     ProductSort.NEWEST: (Product.created_at.desc(), Product.id.desc()),
-    ProductSort.PRICE_ASC: (Product.price_bani.asc(), Product.id.asc()),
-    ProductSort.PRICE_DESC: (Product.price_bani.desc(), Product.id.asc()),
+    ProductSort.PRICE_ASC: (Product.price_cents.asc(), Product.id.asc()),
+    ProductSort.PRICE_DESC: (Product.price_cents.desc(), Product.id.asc()),
     ProductSort.NAME: (Product.name.asc(), Product.id.asc()),
 }
 
@@ -73,6 +73,10 @@ class ProductRepository(SqlAlchemyRepository[Product]):
             .offset((page - 1) * per_page)
         ).all()
         return ProductPage(items=items, total=total, page=page, per_page=per_page)
+
+    def list_active_by_ids(self, product_ids: list[int]) -> Sequence[Product]:
+        statement = select(Product).where(Product.id.in_(product_ids), Product.is_active.is_(True))
+        return self.session.scalars(statement).all()
 
     def list_active(self) -> Sequence[Product]:
         statement = select(Product).where(Product.is_active.is_(True)).order_by(Product.id)

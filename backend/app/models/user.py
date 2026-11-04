@@ -67,4 +67,4 @@ class Address(IdMixin, db.Model):
 
     @property
     def one_line(self) -> str:
-        return f"{self.street}, {self.city}, jud. {self.county}, {self.postal_code}"
+        return f"{self.street}, {self.city}, {self.county} County, {self.postal_code}"

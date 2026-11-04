@@ -42,6 +42,10 @@ class ConflictError(AppError):
     message = "This conflicts with existing data."
 
 
+class OutOfStockError(ConflictError):
+    message = "This jar is out of stock."
+
+
 def error_response(message: str, status_code: int):
     return jsonify(error=message), status_code
 

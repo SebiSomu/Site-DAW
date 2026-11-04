@@ -14,7 +14,7 @@ class ProductSeed:
     slug: str
     category_slug: str
     description: str
-    price_bani: int
+    price_cents: int
     weight_grams: int
     stock: int
     ingredients: tuple[str, ...] = field(default_factory=tuple)

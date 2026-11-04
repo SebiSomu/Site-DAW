@@ -39,7 +39,7 @@ def test_products_search_matches_name_and_description(api):
 
 @pytest.mark.parametrize(("sort", "reverse"), [("price-asc", False), ("price-desc", True)])
 def test_products_sort_by_price(api, sort, reverse):
-    prices = [item["price_bani"] for item in api.get(f"/api/products?sort={sort}&per_page=48").get_json()["items"]]
+    prices = [item["price_cents"] for item in api.get(f"/api/products?sort={sort}&per_page=48").get_json()["items"]]
 
     assert prices == sorted(prices, reverse=reverse)
 
@@ -77,7 +77,7 @@ def test_product_detail_includes_ingredients_and_reviews(api, session):
 
     assert response.status_code == 200
     detail = response.get_json()["product"]
-    assert detail["price_bani"] == 2450
+    assert detail["price_cents"] == 2450
     assert detail["category"] == {"name": "Jams", "slug": "jams"}
     assert detail["ingredients"] == ["apricots", "sugar", "lemon"]
     assert detail["average_rating"] == 4.0

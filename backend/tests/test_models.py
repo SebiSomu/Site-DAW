@@ -29,9 +29,9 @@ def test_password_is_hashed_with_scrypt_and_verifies(seeded):
 
 
 def test_duplicate_email_violates_unique_constraint(seeded, session):
-    session.add(make_user("dublura@example.com"))
+    session.add(make_user("duplicate@example.com"))
     session.commit()
-    session.add(make_user("dublura@example.com"))
+    session.add(make_user("duplicate@example.com"))
     with pytest.raises(IntegrityError):
         session.commit()
     session.rollback()
@@ -44,7 +44,7 @@ def test_foreign_keys_are_enforced(seeded, session):
             name="Ghost Jam",
             slug="ghost-jam",
             description="The category does not exist.",
-            price_bani=1000,
+            price_cents=1000,
             weight_grams=200,
         )
     )
@@ -61,7 +61,7 @@ def test_category_with_products_cannot_be_deleted(seeded, session):
     session.rollback()
 
 
-@pytest.mark.parametrize("field, value", [("stock", -1), ("price_bani", 0), ("weight_grams", 0)])
+@pytest.mark.parametrize("field, value", [("stock", -1), ("price_cents", 0), ("weight_grams", 0)])
 def test_product_check_constraints(seeded, session, field, value):
     product = ProductRepository().get_by_slug("apricot-jam")
     setattr(product, field, value)
@@ -103,13 +103,13 @@ def test_order_total_is_computed_from_items(seeded, session):
         address=address,
         status=status,
         items=[
-            OrderItem(product=apricot, quantity=2, unit_price_bani=2450),
-            OrderItem(product=plum, quantity=1, unit_price_bani=2500),
+            OrderItem(product=apricot, quantity=2, unit_price_cents=2450),
+            OrderItem(product=plum, quantity=1, unit_price_cents=2500),
         ],
     )
     session.add(order)
     session.commit()
-    assert order.total_bani == 7400
+    assert order.total_cents == 7400
     assert order.is_cancellable
     assert "total" not in Order.__table__.columns
 
@@ -118,7 +118,7 @@ def test_average_rating_is_computed(seeded, session):
     product = ProductRepository().get_by_slug("raspberry-jam")
     assert product.average_rating is None
     client = UserRepository().get_by_email(DEMO_CLIENT_EMAIL)
-    other = make_user("vecina@example.com")
+    other = make_user("neighbour@example.com")
     session.add_all(
         [
             Review(user=client, product=product, rating=5, comment="Just like Grandma's"),
@@ -130,7 +130,7 @@ def test_average_rating_is_computed(seeded, session):
 
 
 def test_admin_role_is_detected(seeded, session):
-    admin = make_user("mama@example.com", RoleName.ADMIN)
+    admin = make_user("owner@example.com", RoleName.ADMIN)
     session.add(admin)
     client = make_user("client2@example.com", RoleName.CLIENT)
     session.add(client)

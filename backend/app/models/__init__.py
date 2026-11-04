@@ -1,3 +1,4 @@
+from app.models.cart import CartLine, CartSummary
 from app.models.catalog import Category, Ingredient, Product, ProductImage, product_ingredients
 from app.models.contact import ContactMessage
 from app.models.enums import (
@@ -16,6 +17,8 @@ from app.models.user import Address, Role, User
 __all__ = [
     "Address",
     "CANCELLABLE_STATUSES",
+    "CartLine",
+    "CartSummary",
     "Category",
     "ContactMessage",
     "Ingredient",

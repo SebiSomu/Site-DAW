@@ -32,8 +32,8 @@ class Order(IdMixin, TimestampMixin, db.Model):
     payment: Mapped["Payment | None"] = relationship(back_populates="order", uselist=False, cascade="all, delete-orphan")
 
     @property
-    def total_bani(self) -> int:
-        return sum(item.subtotal_bani for item in self.items)
+    def total_cents(self) -> int:
+        return sum(item.subtotal_cents for item in self.items)
 
     @property
     def is_cancellable(self) -> bool:
@@ -44,30 +44,30 @@ class OrderItem(db.Model):
     __tablename__ = "order_items"
     __table_args__ = (
         CheckConstraint("quantity > 0", name="quantity_positive"),
-        CheckConstraint("unit_price_bani > 0", name="unit_price_positive"),
+        CheckConstraint("unit_price_cents > 0", name="unit_price_positive"),
     )
 
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"), primary_key=True)
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="RESTRICT"), primary_key=True)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
-    unit_price_bani: Mapped[int] = mapped_column(Integer, nullable=False)
+    unit_price_cents: Mapped[int] = mapped_column(Integer, nullable=False)
 
     order: Mapped[Order] = relationship(back_populates="items")
     product: Mapped["Product"] = relationship(back_populates="order_items")
 
     @property
-    def subtotal_bani(self) -> int:
-        return self.quantity * self.unit_price_bani
+    def subtotal_cents(self) -> int:
+        return self.quantity * self.unit_price_cents
 
 
 class Payment(IdMixin, db.Model):
     __tablename__ = "payments"
-    __table_args__ = (CheckConstraint("amount_bani > 0", name="amount_positive"),)
+    __table_args__ = (CheckConstraint("amount_cents > 0", name="amount_positive"),)
 
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"), unique=True, nullable=False)
     provider: Mapped[str] = mapped_column(String(20), nullable=False)
     provider_reference: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    amount_bani: Mapped[int] = mapped_column(Integer, nullable=False)
+    amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False)
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 

@@ -20,7 +20,7 @@ def test_search_is_case_insensitive(seeded):
 
 
 def test_search_sorts_by_price(seeded):
-    prices = [product.price_bani for product in ProductRepository().search(sort=ProductSort.PRICE_ASC, per_page=50).items]
+    prices = [product.price_cents for product in ProductRepository().search(sort=ProductSort.PRICE_ASC, per_page=50).items]
     assert prices == sorted(prices)
 
 

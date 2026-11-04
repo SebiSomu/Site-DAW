@@ -18,7 +18,7 @@ def create_app(config_name: str | None = None, overrides: dict | None = None) ->
     os.makedirs(app.instance_path, exist_ok=True)
 
     if not app.config["SQLALCHEMY_DATABASE_URI"]:
-        database_path = os.path.join(app.instance_path, "gemuri.db")
+        database_path = os.path.join(app.instance_path, "jams.db")
         app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{database_path}"
 
     db.init_app(app)

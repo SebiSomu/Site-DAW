@@ -33,7 +33,7 @@ class Ingredient(IdMixin, db.Model):
 class Product(IdMixin, TimestampMixin, db.Model):
     __tablename__ = "products"
     __table_args__ = (
-        CheckConstraint("price_bani > 0", name="price_positive"),
+        CheckConstraint("price_cents > 0", name="price_positive"),
         CheckConstraint("weight_grams > 0", name="weight_positive"),
         CheckConstraint("stock >= 0", name="stock_not_negative"),
     )
@@ -42,7 +42,7 @@ class Product(IdMixin, TimestampMixin, db.Model):
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     slug: Mapped[str] = mapped_column(String(140), unique=True, nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    price_bani: Mapped[int] = mapped_column(Integer, nullable=False)
+    price_cents: Mapped[int] = mapped_column(Integer, nullable=False)
     weight_grams: Mapped[int] = mapped_column(Integer, nullable=False)
     stock: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

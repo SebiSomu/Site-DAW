@@ -65,7 +65,7 @@ class ProductSummary(BaseModel):
     id: int
     name: str
     slug: str
-    price_bani: int
+    price_cents: int
     weight_grams: int
     stock: int
     category: CategoryRef
@@ -77,7 +77,7 @@ class ProductSummary(BaseModel):
             "id": product.id,
             "name": product.name,
             "slug": product.slug,
-            "price_bani": product.price_bani,
+            "price_cents": product.price_cents,
             "weight_grams": product.weight_grams,
             "stock": product.stock,
             "category": CategoryRef.model_validate(product.category),

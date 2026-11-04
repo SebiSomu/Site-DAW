@@ -8,13 +8,20 @@ from app.seed import DatabaseSeeder
 class ApiClient:
     def __init__(self, client) -> None:
         self.client = client
-        self.csrf_token = client.get("/api/csrf").get_json()["csrf_token"]
+        self.csrf_token = self.get("/api/csrf").get_json()["csrf_token"]
+
+    def _in_own_context(self, send, *args, **kwargs):
+        with self.client.application.app_context():
+            return send(*args, **kwargs)
 
     def get(self, url: str):
-        return self.client.get(url)
+        return self._in_own_context(self.client.get, url)
 
     def post(self, url: str, json: dict | None = None):
-        return self.client.post(url, json=json, headers={"X-CSRFToken": self.csrf_token})
+        return self._in_own_context(self.client.post, url, json=json, headers={"X-CSRFToken": self.csrf_token})
+
+    def delete(self, url: str):
+        return self._in_own_context(self.client.delete, url, headers={"X-CSRFToken": self.csrf_token})
 
 
 @pytest.fixture()
@@ -41,6 +48,11 @@ def seeded(app):
 @pytest.fixture()
 def api(app, seeded):
     return ApiClient(app.test_client())
+
+
+@pytest.fixture()
+def new_api(app, seeded):
+    return lambda: ApiClient(app.test_client())
 
 
 @pytest.fixture()

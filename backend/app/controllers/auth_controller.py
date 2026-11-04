@@ -34,6 +34,12 @@ def logout():
     return "", 204
 
 
+@auth_bp.get("/auth/session")
+def session():
+    user = UserResponse.from_user(current_user).model_dump() if current_user.is_authenticated else None
+    return jsonify(user=user)
+
+
 @auth_bp.get("/auth/me")
 @login_required
 def me():
