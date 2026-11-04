@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from app.models import Order, OrderItem, OrderStatusCode, Product, Review, RoleName, User
+from app.models import Address, Order, OrderItem, OrderStatusCode, Product, Review, RoleName, User
 from app.repositories import (
     AddressRepository,
     CategoryRepository,
@@ -93,7 +93,9 @@ def test_one_review_per_user_and_product(seeded, session):
 
 def test_order_total_is_computed_from_items(seeded, session):
     user = UserRepository().get_by_email(DEMO_CLIENT_EMAIL)
-    address = AddressRepository().list_active_for_user(user.id)[0]
+    address = AddressRepository().add(
+        Address(user=user, street="5 Lungă Street", city="Brașov", county="Brașov", postal_code="500035")
+    )
     products = ProductRepository()
     apricot = products.get_by_slug("apricot-jam")
     plum = products.get_by_slug("plum-butter")

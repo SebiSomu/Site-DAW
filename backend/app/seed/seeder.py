@@ -5,12 +5,8 @@ from flask import current_app
 from app.extensions import db
 from app.models import (
     ORDER_STATUS_LABELS,
-    Address,
     Category,
-    Order,
-    OrderItem,
     OrderStatus,
-    OrderStatusCode,
     Product,
     Role,
     RoleName,
@@ -19,7 +15,6 @@ from app.models import (
 from app.repositories import (
     CategoryRepository,
     IngredientRepository,
-    OrderRepository,
     OrderStatusRepository,
     ProductRepository,
     RoleRepository,
@@ -111,26 +106,9 @@ class DatabaseSeeder:
         self._create_user(email, password, "Maria", "Popescu", RoleName.ADMIN)
 
     def seed_demo_client(self) -> None:
-        client = self.users.get_by_email(DEMO_CLIENT_EMAIL)
-        if client is None:
-            client = self._create_user(DEMO_CLIENT_EMAIL, DEMO_CLIENT_PASSWORD, "Andrei", "Ionescu", RoleName.CLIENT)
-            client.addresses.append(
-                Address(street="10 Republicii Street", city="Brașov", county="Brașov", postal_code="500030")
-            )
-        self._seed_demo_order(client)
-
-    def _seed_demo_order(self, client: User) -> None:
-        if client.orders or not client.addresses:
+        if self.users.email_exists(DEMO_CLIENT_EMAIL):
             return
-        product = self.products.get_by_slug("apricot-jam")
-        OrderRepository().add(
-            Order(
-                user=client,
-                address=client.addresses[0],
-                status=self.statuses.get_by_code(OrderStatusCode.DELIVERED),
-                items=[OrderItem(product=product, quantity=2, unit_price_cents=product.price_cents)],
-            )
-        )
+        self._create_user(DEMO_CLIENT_EMAIL, DEMO_CLIENT_PASSWORD, "Andrei", "Ionescu", RoleName.CLIENT)
 
     def _create_user(self, email: str, password: str, first_name: str, last_name: str, role_name: RoleName) -> User:
         user = User(

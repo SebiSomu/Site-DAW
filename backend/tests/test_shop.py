@@ -32,7 +32,7 @@ def other_api(new_api):
 
 @pytest.fixture()
 def address_id(client_api):
-    return client_api.get("/api/addresses").get_json()["addresses"][0]["id"]
+    return client_api.post("/api/addresses", NEW_ADDRESS).get_json()["address"]["id"]
 
 
 @pytest.fixture()
@@ -260,9 +260,6 @@ def test_review_of_an_unknown_jar_is_not_found(client_api):
     assert client_api.post("/api/products/99999/reviews", {"rating": 5}).status_code == 404
 
 
-def test_demo_client_has_a_delivered_order_to_review(client_api):
-    orders = client_api.get("/api/orders").get_json()["orders"]
-    jar = product("apricot-jam")
-
-    assert [order["status"]["code"] for order in orders] == [OrderStatusCode.DELIVERED.value]
-    assert client_api.get(f"/api/products/{jar.id}/reviews/eligibility").get_json() == {"can_review": True}
+def test_demo_client_starts_with_no_address_and_no_orders(client_api):
+    assert client_api.get("/api/addresses").get_json() == {"addresses": []}
+    assert client_api.get("/api/orders").get_json() == {"orders": []}

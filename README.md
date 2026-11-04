@@ -103,7 +103,7 @@ Before the first run, edit `backend/.env`: set a long random `SECRET_KEY` and an
 | `pip install -r requirements-dev.txt` | Installs app + test dependencies (run again after new packages are added) |
 | `flask db upgrade` | Creates/updates the database in `backend/instance/jams.db` |
 | `flask seed` | Adds roles, order statuses, categories, 13 jams and the admin account (safe to run repeatedly) |
-| `flask seed --demo` | Same, plus a demo client `client@example.com` / `Client-Demo-123` with one delivered order of Apricot Jam, so reviews can be tried |
+| `flask seed --demo` | Same, plus a demo client `client@example.com` / `Client-Demo-123` with no address and no orders |
 | `flask db migrate -m "describe change"` | Generates a migration after changing a model; review it, then run `flask db upgrade` |
 | `flask db downgrade` | Reverts the last migration |
 | `flask run` | Starts the API at http://127.0.0.1:5000 (health check: `/api/health`) |

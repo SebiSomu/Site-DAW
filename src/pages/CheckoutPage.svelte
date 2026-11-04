@@ -25,7 +25,6 @@
       .get<{ addresses: Address[] }>('/addresses')
       .then((body) => {
         addresses = body.addresses
-        addressId = body.addresses[0]?.id ?? null
       })
       .catch((caught: unknown) => (error = errorMessage(caught)))
   })
@@ -86,6 +85,9 @@
                 </label>
               {/each}
             </fieldset>
+            {#if !addressId}
+              <p class="field-hint">Pick one of your addresses to carry on.</p>
+            {/if}
           {:else}
             <p>Add your delivery address to carry on.</p>
           {/if}
