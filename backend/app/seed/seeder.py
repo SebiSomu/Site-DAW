@@ -15,6 +15,7 @@ from app.models import (
 from app.repositories import (
     CategoryRepository,
     IngredientRepository,
+    OrderRepository,
     OrderStatusRepository,
     ProductRepository,
     RoleRepository,

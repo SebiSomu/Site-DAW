@@ -96,7 +96,7 @@ Run these from the project root.
 
 Run these from the `backend/` folder with the virtual environment active (`.\.venv\Scripts\Activate.ps1` on Windows, `source .venv/bin/activate` on macOS/Linux). The terminal prompt then starts with `(.venv)`.
 
-Before the first run, edit `backend/.env`: set a long random `SECRET_KEY` and an `ADMIN_PASSWORD` (the admin account is only created when it is set).
+Before the first run, edit `backend/.env`: set a long random `SECRET_KEY` and an `ADMIN_PASSWORD` (the admin account is only created when it is set). `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` can stay empty until you test real payments; `SITE_URL` is where Stripe sends the customer back. Production refuses to start without all three.
 
 | Command | What it does |
 |---|---|

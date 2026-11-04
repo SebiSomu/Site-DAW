@@ -15,12 +15,18 @@ class BaseConfig:
     SESSION_COOKIE_SECURE = False
     WTF_CSRF_TIME_LIMIT = None
     ACTIVITY_LOG_PATH = os.environ.get("ACTIVITY_LOG_PATH") or os.path.join(BACKEND_DIR, "logs", "activity.log")
+    PAYMENT_GATEWAY = "stripe"
+    STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
+    STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+    SITE_URL = os.environ.get("SITE_URL", "")
+    REQUIRED_SETTINGS: tuple[str, ...] = ()
     TESTING = False
     DEBUG = False
 
 
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
+    SITE_URL = os.environ.get("SITE_URL") or "http://localhost:5173"
 
 
 class TestingConfig(BaseConfig):
@@ -28,10 +34,15 @@ class TestingConfig(BaseConfig):
     SECRET_KEY = "test-secret-key"
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     ADMIN_PASSWORD = "Test-Password-123"
+    PAYMENT_GATEWAY = "fake"
+    STRIPE_SECRET_KEY = ""
+    STRIPE_WEBHOOK_SECRET = ""
+    SITE_URL = "http://shop.test"
 
 
 class ProductionConfig(BaseConfig):
     SESSION_COOKIE_SECURE = True
+    REQUIRED_SETTINGS = ("STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "SITE_URL")
 
 
 CONFIGS: dict[str, type[BaseConfig]] = {

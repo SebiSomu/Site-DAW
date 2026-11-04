@@ -180,17 +180,48 @@
   .breadcrumb {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-xs);
+    align-items: center;
+    gap: var(--space-2xs) var(--space-sm);
     margin: 0 0 var(--space-xl);
     padding: 0;
     list-style: none;
     font-size: var(--text-sm);
+    color: var(--color-ink-soft);
+  }
+
+  .breadcrumb li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
   }
 
   .breadcrumb li + li::before {
-    content: '/';
-    margin-right: var(--space-xs);
-    color: var(--color-ink-soft);
+    content: '';
+    flex: none;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-top: 2px solid var(--color-kraft-deep);
+    border-right: 2px solid var(--color-kraft-deep);
+    rotate: 45deg;
+  }
+
+  .breadcrumb a {
+    padding-block: var(--space-2xs);
+    color: inherit;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--color-jam);
+    text-decoration: underline wavy var(--color-apricot);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.35em;
+  }
+
+  .breadcrumb [aria-current='page'] {
+    color: var(--color-ink);
+    font-weight: 800;
   }
 
   .product {

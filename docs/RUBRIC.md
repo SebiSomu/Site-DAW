@@ -18,7 +18,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
 | 3.01 | ≥3 classes | ✅ | 80+ backend classes plus `ApiClient`, `ApiError`, `Router`, `CartStore` and `AuthStore` on the frontend, see below |
-| 3.02 | ≥1 interface | ✅ | `IRepository` (ABC with abstract methods) in `backend/app/repositories/base.py`, implemented through `SqlAlchemyRepository` by every repository. `PaymentGateway` and `FileValidator` come in phases 6–7 |
+| 3.02 | ≥1 interface | ✅ | `IRepository` (ABC with abstract methods) in `backend/app/repositories/base.py`, implemented through `SqlAlchemyRepository` by every repository. `PaymentGateway` (`backend/app/services/payments/gateway.py`), implemented by `StripeGateway` and `FakeGateway`. `FileValidator` comes in phase 7 |
 | 3.03 | Authentication | ✅ | Pages `/login`, `/register`, log out on `/account` (`AuthStore` in `src/lib/stores/auth.svelte.ts`). API `/api/auth/register`, `/login`, `/logout`, `/me`, `/session` (`backend/app/controllers/auth_controller.py` → `AuthService`); Flask-Login session cookie (HttpOnly, SameSite=Lax, Secure in prod); scrypt hashes. Tests: `backend/tests/test_auth.py` |
 | 3.04 | Authorization | ✅ | Roles `client`/`admin`; `@login_required` and `@role_required(RoleName.ADMIN)` (`backend/app/security/access.py`): guest → 401, client → 403, admin → 200 (`test_role_required_enforces_admin_role`). Ownership: a client cannot read or cancel another client's order or use their address, 404 (`test_client_only_sees_their_own_orders`, `test_address_of_another_client_cannot_be_archived_or_used`). Reviews only after a purchase (`test_review_needs_a_purchase`). Frontend guard: `AuthGate.svelte` (UX only) |
 
@@ -30,9 +30,9 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 | Mixins | `IdMixin`, `TimestampMixin` | `backend/app/models/mixins.py` |
 | Enumerations | `RoleName`, `OrderStatusCode`, `PaymentStatus`, `PaymentProvider`, `ProductSort` | `backend/app/models/enums.py`, `backend/app/repositories/product_repository.py` |
 | Repositories | `SqlAlchemyRepository`, `UserRepository`, `AddressRepository`, `RoleRepository`, `CategoryRepository`, `IngredientRepository`, `ProductRepository`, `OrderRepository`, `OrderStatusRepository`, `PaymentRepository`, `ReviewRepository`, `ContactMessageRepository` | `backend/app/repositories/` |
-| Value objects | `ProductPage`, `CartLine`, `CartSummary`, `SeedReport`, `CategorySeed`, `ProductSeed` | `backend/app/repositories/product_repository.py`, `backend/app/models/cart.py`, `backend/app/seed/` |
-| Services | `AuthService`, `CatalogService`, `CartService`, `AddressService`, `OrderService`, `ReviewService`, `ActivityLogger`, `DatabaseSeeder` | `backend/app/services/`, `backend/app/seed/seeder.py` |
-| Errors | `AppError`, `ValidationError`, `AuthenticationError`, `ForbiddenError`, `NotFoundError`, `ConflictError`, `OutOfStockError` | `backend/app/errors.py` |
+| Value objects | `ProductPage`, `CartLine`, `CartSummary`, `CheckoutSession`, `PaymentEvent`, `SeedReport`, `CategorySeed`, `ProductSeed` | `backend/app/repositories/product_repository.py`, `backend/app/models/cart.py`, `backend/app/seed/` |
+| Services | `AuthService`, `CatalogService`, `CartService`, `AddressService`, `OrderService`, `ReviewService`, `StripeGateway`, `FakeGateway`, `ActivityLogger`, `DatabaseSeeder` | `backend/app/services/`, `backend/app/seed/seeder.py` |
+| Errors | `AppError`, `ValidationError`, `AuthenticationError`, `ForbiddenError`, `NotFoundError`, `ConflictError`, `OutOfStockError`, `CheckoutAlreadyPaidError`, `PaymentError`, `WebhookError` | `backend/app/errors.py` |
 | Request/response schemas | `RequestSchema`, `RegisterRequest`, `LoginRequest`, `UserResponse`, `ProductQuery`, `CategoryResponse`, `CategoryRef`, `ImageResponse`, `ReviewResponse`, `ProductSummary` → `ProductDetail`, `ProductPageResponse`, `CartRequest`, `CartResponse`, `AddressRequest`, `AddressResponse`, `OrderRequest`, `OrderSummary` → `OrderDetail`, `ReviewRequest` | `backend/app/schemas/` |
 | Frontend | `ApiClient`, `ApiError` (extends `Error`), `Router`, `CartStore`, `AuthStore` | `src/lib/api/client.ts`, `src/lib/router/router.svelte.ts`, `src/lib/stores/` |
 | Configuration | `BaseConfig`, `DevelopmentConfig`, `TestingConfig`, `ProductionConfig` | `backend/app/config.py` |
@@ -51,8 +51,8 @@ Counted with: `grep -rE "^class " backend/app | wc -l`
 
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
-| 4.01 | Inheritance | ✅ | Repositories inherit `SqlAlchemyRepository`; configs inherit `BaseConfig`; models inherit mixins; `AppError` → `ValidationError`, `AuthenticationError`, `ForbiddenError`, `NotFoundError`, `ConflictError` → `OutOfStockError` (`backend/app/errors.py`); `OrderDetail` extends `OrderSummary` (`backend/app/schemas/shop.py`); `ProductDetail` extends `ProductSummary` (`backend/app/schemas/catalog.py`); `ApiError` extends `Error` (`src/lib/api/client.ts`) |
-| 4.02 | ≥2 exception types handled | ✅ | `backend/app/errors.py` maps the `AppError` family, Pydantic `ValidationError`, SQLAlchemy `IntegrityError`, Flask-WTF `CSRFError`, Werkzeug `HTTPException` and unexpected errors (500) to JSON `{"error": ...}`. Tests: duplicate email → 409, invalid input → 400, guest → 401, unknown route → 404 |
+| 4.01 | Inheritance | ✅ | Repositories inherit `SqlAlchemyRepository`; configs inherit `BaseConfig`; models inherit mixins; `AppError` → `ValidationError`, `AuthenticationError`, `ForbiddenError`, `NotFoundError`, `ConflictError` → `OutOfStockError` (`backend/app/errors.py`); `OrderDetail` extends `OrderSummary` (`backend/app/schemas/shop.py`); `StripeGateway` and `FakeGateway` extend `PaymentGateway`; `ProductDetail` extends `ProductSummary` (`backend/app/schemas/catalog.py`); `ApiError` extends `Error` (`src/lib/api/client.ts`) |
+| 4.02 | ≥2 exception types handled | ✅ | `backend/app/errors.py` maps the `AppError` family (including `PaymentError` and `WebhookError`; `StripeGateway` catches every `stripe.StripeError` and raises `PaymentError`), Pydantic `ValidationError`, SQLAlchemy `IntegrityError`, Flask-WTF `CSRFError`, Werkzeug `HTTPException` and unexpected errors (500) to JSON `{"error": ...}`. Tests: duplicate email → 409, invalid input → 400, guest → 401, unknown route → 404 |
 | 4.03 | Image carousel | ✅ | `src/lib/components/Carousel.svelte` on the home page: four fruit watercolours as recipe-book pages that turn over (3D page turn), autoplay every 7 s with a pause button, previous/next buttons, page dots, arrow keys, swipe on touch screens, pauses on hover and focus, `aria-roledescription="carousel"` and `aria-live` when paused |
 | 4.04 | Animation | ✅ | `src/styles/animations.css`: `@keyframes sway` (jar cards and pinned pictures sway like paper in a draught, each with its own tilt, duration and delay), tape that lifts on hover, `@keyframes rise` scroll-linked entrances (`animation-timeline: view()`); Svelte page-turn transition in the carousel. All switched off under `prefers-reduced-motion` (autoplay off too) |
 
@@ -67,7 +67,7 @@ Counted with: `grep -rE "^class " backend/app | wc -l`
 
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
-| 6.01 | ≥5 unit tests | ✅ | 97 pytest tests in `backend/tests/` and 30 Vitest tests in `src/` (`npm test`) |
+| 6.01 | ≥5 unit tests | ✅ | 139 pytest tests in `backend/tests/` and 30 Vitest tests in `src/` (`npm test`) |
 | 6.02 | Git | ✅ | GitHub repo `SebiSomu/Site-DAW` |
 | 6.03 | GitHub Actions CI | 🟡 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml): backend tests + frontend check, tests and build. Done once a run on GitHub is confirmed green (screenshot of the Actions tab) |
 

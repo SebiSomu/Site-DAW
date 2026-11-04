@@ -46,6 +46,20 @@ class OutOfStockError(ConflictError):
     message = "This jar is out of stock."
 
 
+class CheckoutAlreadyPaidError(ConflictError):
+    message = "This order has just been paid."
+
+
+class PaymentError(AppError):
+    status_code = 502
+    message = "We could not reach the payment service. Please try again in a moment."
+
+
+class WebhookError(AppError):
+    status_code = 400
+    message = "This payment notification could not be verified."
+
+
 def error_response(message: str, status_code: int):
     return jsonify(error=message), status_code
 

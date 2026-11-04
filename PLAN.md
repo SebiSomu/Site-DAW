@@ -356,6 +356,68 @@ Free services used: Azure for Students, Let's Encrypt, Stripe test mode, Cloudfl
 | 10. Deploy | Azure VM + Apache + HTTPS, Stripe webhook live (test mode) | 7.02 |
 | 11. Proof | Lighthouse report, Security Headers screenshot, curl demos, README with rubric checklist | all |
 
+### Phase 6 subplans
+
+Rubric 8.02: a working online payment system. Do them in order; each ends with the checks green and can be its own commit. 6.1 to 6.5 need no Stripe account, because tests use `FakeGateway`. Only 6.6 needs real test keys.
+
+**Decisions**
+
+- **Stock leaves when the payment succeeds, not when the order is placed**, as planned. Nothing is held for unpaid orders, so an abandoned checkout never blocks a jar. The rare cost: two buyers can pay for the last jar at the same time, so the second one is refunded automatically (6.3).
+- **An unpaid order stays open.** When a Stripe session expires, the order stays at `Awaiting payment` and the client can pay again or cancel it.
+- **Stripe's webhook is the only thing that marks an order paid.** The success page only reads the status, because anyone can open that URL.
+- **No schema change.** `payments` already has what is needed, with one row per order. `provider_reference` holds the Checkout Session id and is replaced when the client retries. The payment intent needed for a refund is read from Stripe through that session.
+- **Return URLs come from a `SITE_URL` setting**, never from the request's `Host` header.
+
+**6.1 Gateway foundation ✅**
+
+- Add `stripe` to `requirements.txt`; add `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` and `SITE_URL` to config and `.env.example`. `ProductionConfig` refuses to start without them.
+- `PaymentGateway` ABC in `services/payments/`: `create_checkout(order)`, `parse_webhook(payload, signature)`, `expire_checkout(reference)`, `refund(reference)`. It returns our own small value objects, so no Stripe types leak out.
+- `StripeGateway` and `FakeGateway` implement it. `TestingConfig` selects the fake, so tests never touch the network.
+- `PaymentError` (`AppError`, 502) and a handler that turns `stripe.StripeError` into a clear JSON message without leaking details.
+- Tests: the fake's behaviour, gateway selection by config, a Stripe error mapped to a clean response.
+- Rubric: 3.02 (second interface), 4.01, 4.02.
+
+**6.2 Starting a payment**
+
+- `PaymentService.start(order_id, user_id)`: own orders only and only `Awaiting payment`; re-check stock and active products; create the session in `ron` with one line per order item, using `unit_price_cents` from the order, never from the request.
+- Create or update the `payments` row as `pending`. A retry expires the previous session first, so one order never has two payable sessions.
+- `POST /api/orders/<id>/pay` returns `{"checkout_url": ...}`. `POST /api/orders` stays as it is, so placing and paying remain two steps and a failed Stripe call never loses the order.
+- Log `payment_started`.
+- Tests: amount comes from the order, another client's order is 404, a paid or cancelled order is 409, out of stock is 409, retry replaces the reference, a gateway failure leaves the order intact.
+
+**6.3 Webhook**
+
+- `POST /api/payments/webhook`: the only CSRF-exempt route, verified by Stripe signature (bad signature is 400 and logged).
+- `checkout.session.completed` with `payment_status=paid`, after checking the amount matches: mark the payment `succeeded` with `paid_at`, move the order to `Paid`, and take the stock with a conditional update (`stock = stock - n WHERE stock >= n`), all in one transaction.
+- If a jar has sold out in the meantime: refund, cancel the order, log it.
+- If the order was already cancelled: refund.
+- `checkout.session.expired`: mark the payment `failed`; the order stays open. Other event types get a 200 and are ignored.
+- Idempotent: Stripe resends events, so a repeat must not take stock twice or refund twice. A failure returns 500 so Stripe retries.
+- Log `payment_succeeded`, `payment_failed`, `payment_refunded`, `webhook_rejected`.
+- Tests: plan §8 items 9 and 10, plus duplicate event, oversold jar, amount mismatch, unknown session, cancelled order, and that a paid order makes its jars reviewable.
+
+**6.4 Cancelling and refunds**
+
+- `Awaiting payment`: expire the open session first, so it cannot be paid after the order is cancelled.
+- `Paid` or `Confirmed`: refund through the gateway, mark the payment `refunded`, restore the stock, then cancel. If the refund fails, the order stays as it was and the client sees the error.
+- Tests: stock restored exactly once, refund failure changes nothing, a shipped order still cannot be cancelled.
+
+**6.5 Frontend**
+
+- Checkout's button becomes "Place order and pay": place the order, clear the cart, ask for `checkout_url`, go to Stripe. If Stripe is unavailable, the client lands on the saved order and can try again.
+- `/checkout/success`: re-reads the order for a short while, because the webhook can arrive after the browser. It shows "Paid" or "We are still confirming your payment".
+- `/checkout/cancelled`: says nothing was charged and links back to the order.
+- Order page: "Pay now" for `Awaiting payment`; cancel text mentions the refund on a paid order; remove the "not switched on yet" note.
+- Both return pages are `noindex`. No card data ever touches our pages.
+- Tests: Vitest for the status-polling logic; browser run of the whole flow against the fake.
+
+**6.6 Real Stripe test mode and proof**
+
+- Needs from the developer: a Stripe account in test mode, the test keys in `backend/.env`, and the Stripe CLI for `stripe listen --forward-to localhost:5000/api/payments/webhook`.
+- Walk through: card `4242 4242 4242 4242` (order `Paid`, stock down, review form appears), declined card `4000 0000 0000 0002`, abandoned checkout, cancel with refund, resent event (`stripe events resend`).
+- Update `docs/RUBRIC.md` (8.02), `README.md` and the use case UC4; add screenshots of a paid order and of the Stripe dashboard.
+- The live webhook endpoint on the Azure VM is set up in phase 10.
+
 ---
 
 ## 12. Deliverable checklist (README "Rubric" section)
