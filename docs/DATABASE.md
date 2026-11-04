@@ -1,6 +1,6 @@
 # Database
 
-SQLite, managed with SQLAlchemy 2 models (`backend/app/models/`) and Alembic migrations (`backend/migrations/`). 14 tables, all in third normal form (barem 2.01).
+SQLite, managed with SQLAlchemy 2 models (`backend/app/models/`) and Alembic migrations (`backend/migrations/`). 14 tables, all in third normal form (rubric 2.01).
 
 ![ER diagram](database.png)
 
@@ -14,7 +14,7 @@ Source: [`database.mmd`](database.mmd) (Mermaid) · Vector: [`database.svg`](dat
 | `users` | Accounts; password stored as scrypt hash |
 | `addresses` | Delivery addresses; archived instead of edited once used by an order |
 | `categories` | Jams, Preserves, Fruit Butters, Seasonal Editions |
-| `products` | Jars on sale; price in bani (integer), stock, active flag |
+| `products` | Jars on sale; price in cents (integer), stock, active flag |
 | `product_images` | Ordered images per product, with alt text |
 | `ingredients` | Shared ingredient list |
 | `product_ingredients` | Many-to-many between products and ingredients |
@@ -28,11 +28,11 @@ Source: [`database.mmd`](database.mmd) (Mermaid) · Vector: [`database.svg`](dat
 ## Why it is in 3NF
 
 - **1NF:** every column holds a single atomic value; lists (ingredients, images, order lines) live in their own tables.
-- **2NF:** the two composite keys (`order_items`, `product_ingredients`) have no partial dependencies: `quantity` and `unit_price_bani` depend on the whole (order, product) pair.
+- **2NF:** the two composite keys (`order_items`, `product_ingredients`) have no partial dependencies: `quantity` and `unit_price_cents` depend on the whole (order, product) pair.
 - **3NF:** no non-key column depends on another non-key column. Repeated labels (roles, statuses, categories, ingredients) are lookup tables referenced by foreign key.
-- **No derived data stored:** order total and average rating are computed (`Order.total_bani`, `Product.average_rating`).
-- `order_items.unit_price_bani` is not a copy of `products.price_bani`: it is the historical price at the moment of purchase, a fact of the order line.
-- `payments.amount_bani` is the amount actually captured by Stripe, recorded for audit.
+- **No derived data stored:** order total and average rating are computed (`Order.total_cents`, `Product.average_rating`).
+- `order_items.unit_price_cents` is not a copy of `products.price_cents`: it is the historical price at the moment of purchase, a fact of the order line.
+- `payments.amount_cents` is the amount actually captured by Stripe, recorded for audit.
 
 ## Integrity rules enforced by the database
 

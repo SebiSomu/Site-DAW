@@ -3,9 +3,9 @@
 Online shop for mum's homemade jams. Frontend in **Svelte 5 + Vite + TypeScript**, backend in **Flask (Python)**. All site content is in English; prices are in lei (RON).
 
 - Project plan: [`PLAN.md`](PLAN.md)
-- Grading rubric: [`Barem_evaluare_proiect_web.md`](Barem_evaluare_proiect_web.md)
-- Barem progress tracker: [`docs/BAREM.md`](docs/BAREM.md)
-- Skill for AI agents: [`.agents/skills/gemuri-webdev/SKILL.md`](.agents/skills/gemuri-webdev/SKILL.md)
+- Grading rubric: `Barem_evaluare_proiect_web.pdf` (kept locally, not in git)
+- Rubric progress tracker: [`docs/RUBRIC.md`](docs/RUBRIC.md)
+- Skill for AI agents: [`.agents/skills/mums-jams-webdev/SKILL.md`](.agents/skills/mums-jams-webdev/SKILL.md)
 
 ## Requirements
 
@@ -88,6 +88,7 @@ Run these from the project root.
 |---|---|
 | `npm run dev` | Starts the dev server at http://localhost:5173 (reloads on every save) |
 | `npm run check` | Type-checks TypeScript and Svelte components |
+| `npm test` | Runs the frontend tests (Vitest) |
 | `npm run build` | Builds the production version into `dist/` |
 | `npm run preview` | Serves the `dist/` build locally |
 
@@ -100,16 +101,16 @@ Before the first run, edit `backend/.env`: set a long random `SECRET_KEY` and an
 | Command | What it does |
 |---|---|
 | `pip install -r requirements-dev.txt` | Installs app + test dependencies (run again after new packages are added) |
-| `flask db upgrade` | Creates/updates the database in `backend/instance/gemuri.db` |
+| `flask db upgrade` | Creates/updates the database in `backend/instance/jams.db` |
 | `flask seed` | Adds roles, order statuses, categories, 13 jams and the admin account (safe to run repeatedly) |
-| `flask seed --demo` | Same, plus a demo client `client@example.com` / `Client-Demo-123` |
+| `flask seed --demo` | Same, plus a demo client `client@example.com` / `Client-Demo-123` with one delivered order of Apricot Jam, so reviews can be tried |
 | `flask db migrate -m "describe change"` | Generates a migration after changing a model; review it, then run `flask db upgrade` |
 | `flask db downgrade` | Reverts the last migration |
 | `flask run` | Starts the API at http://127.0.0.1:5000 (health check: `/api/health`) |
 | `pytest` | Runs the backend tests |
 | `deactivate` | Leaves the virtual environment |
 
-To start over with an empty database, delete `backend/instance/gemuri.db`, then run `flask db upgrade` and `flask seed --demo`.
+To start over with an empty database, delete `backend/instance/jams.db`, then run `flask db upgrade` and `flask seed --demo`.
 
 The database schema, ER diagram and 3NF explanation are in [`docs/DATABASE.md`](docs/DATABASE.md).
 
@@ -124,6 +125,7 @@ Sessions use a Flask-Login cookie (HttpOnly, SameSite=Lax, Secure in production)
 | POST | `/api/auth/login` | public | `200 {"user": {...}}` or `401` |
 | POST | `/api/auth/logout` | logged in | `204` |
 | GET | `/api/auth/me` | logged in | `200 {"user": {...}}` or `401` |
+| GET | `/api/auth/session` | public | `200 {"user": {...}}`, or `{"user": null}` for a guest |
 
 Register body: `email`, `password` (8–128 characters), `first_name`, `last_name`, optional `phone`. Unknown fields are rejected.
 
@@ -137,11 +139,11 @@ User actions are written to `backend/logs/activity.log` (gitignored, rotated at 
 2026-10-28 17:40:02,114 | INFO | 127.0.0.1 | 2 | login | email=client@example.com
 ```
 
-Logged so far: `register`, `login`, `login_failed`, `logout`, `access_denied`, `csrf_rejected`.
+Logged so far: `register`, `login`, `login_failed`, `logout`, `access_denied`, `csrf_rejected`, `cart_validated`, `address_added`, `address_archived`, `order_created`, `order_cancelled`, `review_posted`.
 
 ## Catalogue API
 
-All public, read-only (`GET`, no CSRF token needed). Prices are integer bani (`2450` = `24.50 lei`).
+All public, read-only (`GET`, no CSRF token needed). Prices are integer cents (`2450` = `24.50 lei`).
 
 | Endpoint | Result |
 |---|---|
@@ -153,6 +155,23 @@ All public, read-only (`GET`, no CSRF token needed). Prices are integer bani (`2
 `sort` is `newest` (default), `price-asc`, `price-desc` or `name`; `per_page` is 1–48 (default 12). Invalid values return `400`. Inactive products are hidden.
 
 Frontend pages: `/` (home), `/products` (catalogue with category links, search, sort, pagination, all kept in the URL), `/products/<slug>` (product page), anything else shows the 404 page. Every page sets its title, description, canonical URL and Open Graph tags through `src/lib/components/Seo.svelte`.
+
+## Shop API
+
+Every `POST` and `DELETE` needs the CSRF token. Prices always come from the server; a request that sends its own price is rejected.
+
+| Method | Endpoint | Access | Result |
+|---|---|---|---|
+| POST | `/api/cart/validate` | public | Body `{"items": [{product_id, quantity}]}`. Returns `{lines, missing_product_ids, total_cents}` |
+| GET / POST | `/api/addresses` | logged in | The client's active addresses / add one |
+| DELETE | `/api/addresses/<id>` | owner | Archives the address, so past orders keep it |
+| GET / POST | `/api/orders` | logged in | The client's orders / place one: `{address_id, items, notes}`. `409` when a jar is out of stock |
+| GET | `/api/orders/<id>` | owner | Order detail, `404` for anyone else |
+| POST | `/api/orders/<id>/cancel` | owner | `409` once shipped or already cancelled |
+| GET | `/api/products/<id>/reviews/eligibility` | logged in | `{"can_review": true or false}` |
+| POST | `/api/products/<id>/reviews` | bought it | Body `{rating, comment}`. `403` without a purchase, `409` for a second review |
+
+Frontend pages: `/cart`, `/checkout`, `/login`, `/register`, `/account`, `/account/orders`, `/account/orders/<id>`. The cart lives in the browser as product ids and quantities only. Until card payment arrives in phase 6, a new order stays at `Awaiting payment` and does not take jars out of stock.
 
 ## Design
 

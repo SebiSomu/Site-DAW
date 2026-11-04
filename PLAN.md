@@ -1,7 +1,7 @@
 # Mum's Homemade Jams — Project plan
 
 E-commerce site for selling mum's homemade jams. All site content is in English; prices are in lei (RON).
-Goal: satisfy **every** criterion in `Barem_evaluare_proiect_web.md` (grade 10/10), with visible proof for each.
+Goal: satisfy **every** criterion in `Barem_evaluare_proiect_web.pdf` (grade 10/10), with visible proof for each.
 
 ---
 
@@ -14,13 +14,13 @@ Goal: satisfy **every** criterion in `Barem_evaluare_proiect_web.md` (grade 10/1
 | ORM / DB | SQLAlchemy 2 + Flask-Migrate, SQLite (dev & prod) | Parameterized queries → SQLi protection; 3NF schema with migrations |
 | Validation | Pydantic v2 | Typed request schemas, clear 400 errors |
 | Auth | Flask-Login (session cookie: HttpOnly, Secure, SameSite=Lax) + Werkzeug scrypt hashing | Works naturally with CSRF tokens; no JWT-in-localStorage XSS risk |
-| CSRF | Flask-WTF `CSRFProtect`, token sent in `X-CSRFToken` header | Barem 9.01 |
-| Rate limiting | Flask-Limiter, `100 per minute` global (+ `5/min` on login) | Barem 10.01 |
-| CAPTCHA | Cloudflare Turnstile (free) | Barem 10.02 |
-| Images | Pillow (validate + re-encode) | Barem 9.04, 9.05, 10.03 |
-| Payments | **Stripe Checkout** (hosted page, test mode, currency `ron`) + webhook | Barem 8.02; hosted page = no card data touches our server |
+| CSRF | Flask-WTF `CSRFProtect`, token sent in `X-CSRFToken` header | Rubric 9.01 |
+| Rate limiting | Flask-Limiter, `100 per minute` global (+ `5/min` on login) | Rubric 10.01 |
+| CAPTCHA | Cloudflare Turnstile (free) | Rubric 10.02 |
+| Images | Pillow (validate + re-encode) | Rubric 9.04, 9.05, 10.03 |
+| Payments | **Stripe Checkout** (hosted page, test mode, currency `ron`) + webhook | Rubric 8.02; hosted page = no card data touches our server |
 | Hosting | **Azure for Students** VM (free, no card) + **Apache 2 + mod_wsgi** + Let's Encrypt HTTPS on the free Azure DNS name | Free; `.htaccess` needs Apache (10.05); HTTPS needed for HSTS (10.04); persistent disk for DB, uploads, logs |
-| Tests / CI | pytest (backend), Vitest (frontend), GitHub Actions | Barem 6.01, 6.03 |
+| Tests / CI | pytest (backend), Vitest (frontend), GitHub Actions | Rubric 6.01, 6.03 |
 
 **Payment:** card only, through Stripe Checkout in test mode (free, no company needed). No cash-on-delivery branch, to keep the order flow simple.
 
@@ -39,7 +39,7 @@ Browser (Svelte SPA)  ──HTTPS──►  Apache
                                                                → Models (SQLAlchemy) → SQLite
 ```
 
-Patterns used (Barem 2.03): **MVC** (Model = SQLAlchemy models, View = Svelte, Controller = Flask blueprints), **Repository**, **Service layer**, **Application factory**, **Dependency injection** of the payment gateway (real Stripe vs fake in tests).
+Patterns used (Rubric 2.03): **MVC** (Model = SQLAlchemy models, View = Svelte, Controller = Flask blueprints), **Repository**, **Service layer**, **Application factory**, **Dependency injection** of the payment gateway (real Stripe vs fake in tests).
 
 ### Backend layout
 ```
@@ -99,7 +99,7 @@ public/
 
 ---
 
-## 3. Database (3NF) — Barem 2.01
+## 3. Database (3NF) — Rubric 2.01
 
 ```mermaid
 erDiagram
@@ -125,18 +125,18 @@ erDiagram
 | users | **id**, email UNIQUE, password_hash, first_name, last_name, phone, *role_id*, created_at |
 | addresses | **id**, *user_id*, street, city, county, postal_code, is_archived |
 | categories | **id**, name UNIQUE, slug UNIQUE, description |
-| products | **id**, *category_id*, name, slug UNIQUE, description, price_bani, weight_grams, stock, is_active, created_at |
+| products | **id**, *category_id*, name, slug UNIQUE, description, price_cents, weight_grams, stock, is_active, created_at |
 | product_images | **id**, *product_id*, filename, alt_text, position |
 | ingredients | **id**, name UNIQUE |
 | product_ingredients | ***product_id*, *ingredient_id*** (composite PK) |
 | order_statuses | **id**, code UNIQUE, name UNIQUE (`Awaiting payment`, `Paid`, `Confirmed`, `Shipped`, `Delivered`, `Cancelled`) |
 | orders | **id**, *user_id*, *address_id*, *status_id*, created_at, notes |
-| order_items | ***order_id*, *product_id***, quantity, unit_price_bani |
-| payments | **id**, *order_id* UNIQUE, provider, provider_reference UNIQUE, amount_bani, status, paid_at |
+| order_items | ***order_id*, *product_id***, quantity, unit_price_cents |
+| payments | **id**, *order_id* UNIQUE, provider, provider_reference UNIQUE, amount_cents, status, paid_at |
 | reviews | **id**, *user_id*, *product_id*, rating (1–5, CHECK), comment, created_at; UNIQUE(user_id, product_id) |
 | contact_messages | **id**, name, email, subject, message, created_at |
 
-Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Money is stored as integer bani (1 leu = 100 bani), matching Stripe's minor units.
+Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Money is stored as integer cents (1 leu = 100 cents), matching Stripe's minor units.
 
 3NF justification:
 - No derived data stored: order total = Σ(quantity × unit_price), computed. Average rating computed.
@@ -147,7 +147,7 @@ Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Mone
 
 ---
 
-## 4. Use cases — Barem 2.02 (needs ≥4, we have 8)
+## 4. Use cases — Rubric 2.02 (needs ≥4, we have 8)
 
 | # | Actor | Scenario |
 |---|---|---|
@@ -158,7 +158,7 @@ Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Mone
 | UC5 | Client | "My orders": order history table, order detail, cancel a not-yet-shipped order |
 | UC6 | Client | Leave a review (1–5 ★ + comment) on a product they bought |
 | UC7 | Visitor | Contact form (CAPTCHA) |
-| UC8 | Admin (mama) | Product CRUD with image upload, stock management, order status updates, view messages, view activity log |
+| UC8 | Admin (Mum) | Product CRUD with image upload, stock management, order status updates, view messages, view activity log |
 
 ---
 
@@ -212,9 +212,9 @@ Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Mone
 
 ---
 
-## 7. Barem → implementation map
+## 7. Rubric → implementation map
 
-### Nota 2 — Base functionality & architecture
+### Grade 2 — Base functionality & architecture
 | Criterion | Implementation | Proof |
 |---|---|---|
 | 2.01 DB 3NF | Schema in §3, migrations | ER diagram + 3NF section in README |
@@ -222,7 +222,7 @@ Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Mone
 | 2.03 Architecture | MVC + Repository + Service | Folder tree + diagram in README |
 | 2.04 Content/multimedia | Images (products, carousel), text, **tables** (product facts, orders, admin), links (nav, footer, legal); optional audio on the About page | Pages |
 
-### Nota 3 — OOP & access control
+### Grade 3 — OOP & access control
 | Criterion | Implementation |
 |---|---|
 | 3.01 ≥3 classes | Models, repositories, services, `ApiClient`, `CartStore` (dozens) |
@@ -230,7 +230,7 @@ Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Mone
 | 3.03 Authentication | Register/login/logout, Flask-Login sessions, hashed passwords |
 | 3.04 Authorization | Roles `client`/`admin`; `@login_required`, `@role_required("admin")`; ownership checks (client sees only own orders); frontend route guards (UX only — backend is the enforcement) |
 
-### Nota 4 — OOP concepts & interactivity
+### Grade 4 — OOP concepts & interactivity
 | Criterion | Implementation |
 |---|---|
 | 4.01 Inheritance | `SqlAlchemyRepository` → `ProductRepository`, `OrderRepository`…; `AppError` → `ValidationError`, `AuthenticationError`, `ForbiddenError`, `NotFoundError`, `ConflictError` (done), `OutOfStockError`, `PaymentError`, `UploadError` (later phases); `BaseConfig` → `DevelopmentConfig`/`TestingConfig`/`ProductionConfig`; `StripeGateway`/`FakeGateway` → `PaymentGateway` |
@@ -238,32 +238,32 @@ Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Mone
 | 4.03 Carousel | `Carousel.svelte` on home: autoplay, prev/next, dots, swipe on mobile, keyboard arrows, pause on hover, `aria-live` |
 | 4.04 Animation | CSS `@keyframes` (jar lid "pop" on add-to-cart, fade-in-up of cards on scroll), Svelte `fly`/`fade` transitions (cart drawer, toasts), cart badge bounce; all honour `prefers-reduced-motion` |
 
-### Nota 5 — CSS & responsive
+### Grade 5 — CSS & responsive
 | Criterion | Implementation |
 |---|---|
 | 5.01 ≥2 CSS files, ≥10 properties | 5 files in `src/styles/` (+ scoped component styles); grid, flex, custom properties, transform, transition, box-shadow, border-radius, clamp() fonts, object-fit, aspect-ratio, etc. |
 | 5.02 Responsive | Mobile-first; breakpoints 600px (tablet) / 1024px (desktop); hamburger menu; product grid 1→2→3/4 columns; tables scroll horizontally on mobile; tested in DevTools device mode (screenshots for README) |
 
-### Nota 6 — Testing & automation
+### Grade 6 — Testing & automation
 | Criterion | Implementation |
 |---|---|
 | 6.01 ≥5 unit tests | Target ~20 pytest + ~5 Vitest (list in §8) |
 | 6.02 Git | Repo `SebiSomu/Site-DAW`; feature branches + PRs, meaningful commits |
 | 6.03 CI | `.github/workflows/ci.yml`: on push/PR → backend job (install, `pytest`) + frontend job (`npm ci`, `npm run check`, `vitest run`, `npm run build`, upload `dist` artifact). Badge in README |
 
-### Nota 7 — Monitoring & hosting
+### Grade 7 — Monitoring & hosting
 | Criterion | Implementation |
 |---|---|
 | 7.01 Logging | `ActivityLogger` → `logs/activity.log` (RotatingFileHandler, 1 MB × 5). Format: `timestamp | level | ip | user_id | action | details`. Logged: register, login ok/failed, logout, cart validate, order created/cancelled, payment success/failure, review posted, contact message, admin CRUD, order status change, rejected uploads, rate-limit hits, CSRF failures. Viewable in `/admin/activity-log` |
 | 7.02 Hosting | Azure VM + Apache + mod_wsgi + HTTPS (see §9) |
 
-### Nota 8 — SEO & payments
+### Grade 8 — SEO & payments
 | Criterion | Implementation |
 |---|---|
 | 8.01 Lighthouse SEO ≥90 | `<html lang="en">`, unique `<title>` + meta description per page (`Seo.svelte`), canonical, Open Graph, `robots.txt`, `sitemap.xml`, descriptive link text, `alt` on every image, real `<a href>` links (crawlable), legible font sizes, viewport meta, HTTPS, JSON-LD `Product`/`Organization`. Target 100 |
 | 8.02 Online payments | Stripe Checkout Session in RON; webhook `checkout.session.completed` → order `Paid`, payment row, stock decrement; cancel URL returns to cart. Demo with test card `4242 4242 4242 4242` |
 
-### Nota 9 — Security I
+### Grade 9 — Security I
 | Criterion | Implementation | Proof |
 |---|---|---|
 | 9.01 CSRF | `CSRFProtect` on all state-changing endpoints; token via `/api/csrf` → `X-CSRFToken`; `SameSite=Lax` cookies; webhook exempt (Stripe signature instead) | Test: POST without token → 400 |
@@ -272,7 +272,7 @@ Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Mone
 | 9.04 Max 12 MB | Flask `MAX_CONTENT_LENGTH = 12 * 1024 * 1024` → 413 handler; Apache `LimitRequestBody 12582912`; client-side check before upload | Test: 13 MB file → 413 |
 | 9.05 Allowed extensions | Whitelist `.jpg .jpeg .png .webp`; extension **and** real format check (Pillow `verify()`, magic bytes); `secure_filename` + UUID names | Test: `.exe`/`.php`/renamed file rejected |
 
-### Nota 10 — Security II
+### Grade 10 — Security II
 | Criterion | Implementation | Proof |
 |---|---|---|
 | 10.01 Rate limiting | Flask-Limiter default `100 per minute` per IP → 429 with `Retry-After`; stricter `5/min` on login | Test + script sending 101 requests |
@@ -283,7 +283,7 @@ Full diagram and 3NF justification: [`docs/DATABASE.md`](docs/DATABASE.md). Mone
 
 ---
 
-## 8. Test plan (Barem 6.01)
+## 8. Test plan (Rubric 6.01)
 
 Backend (pytest, `TestingConfig` with in-memory SQLite, `FakeGateway`, CAPTCHA mocked):
 1. Password is hashed and verifies correctly
@@ -310,9 +310,9 @@ Frontend (Vitest): CartStore add/update/remove/total, persistence, ApiClient err
 
 ---
 
-## 9. Hosting & deployment (Barem 7.02, 10.04, 10.05)
+## 9. Hosting & deployment (Rubric 7.02, 10.04, 10.05)
 
-Chosen: **Azure for Students** (free $100 credit/year, activated with the @student.unitbv.ro email, no credit card) — one small Ubuntu VM. No domain purchase: Azure gives a free DNS name (`gemuri-mama.westeurope.cloudapp.azure.com`) that Let's Encrypt accepts.
+Chosen: **Azure for Students** (free $100 credit/year, activated with the @student.unitbv.ro email, no credit card) — one small Ubuntu VM. No domain purchase: Azure gives a free DNS name (`mums-jams.westeurope.cloudapp.azure.com`) that Let's Encrypt accepts.
 
 1. Create VM: Ubuntu 24.04, size B1s, open ports 22/80/443, set the DNS name label on the public IP
 2. Install: `apache2 libapache2-mod-wsgi-py3 python3-venv certbot python3-certbot-apache`; `a2enmod headers rewrite ssl`
@@ -341,24 +341,24 @@ Free services used: Azure for Students, Let's Encrypt, Stripe test mode, Cloudfl
 
 ## 11. Phases
 
-| Phase | Work | Barem covered |
+| Phase | Work | Rubric covered |
 |---|---|---|
 | 0. Setup ✅ | Repo hygiene, `requirements.txt`, Flask app factory, Vite proxy `/api` → Flask, CI skeleton | 6.02, 6.03 |
 | 1. Data ✅ | Models, migrations, seed (categories, ~10 jams, admin), repositories | 2.01, 2.03, 3.01, 3.02, 4.01 |
 | 2. Auth ✅ | Register/login/logout, roles, decorators, CSRF, error hierarchy, logging (backend only; login/register pages come with phase 4–5 UI). CAPTCHA and login rate limit stay in phase 8 | 3.03, 3.04, 4.02, 7.01, 9.01 |
 | 3. Catalogue ✅ | Product API + pages, filters, search, product detail, SEO component | 2.02, 2.04, 8.01 |
 | 4. UI shell ✅ | Styles (5 CSS files), header/footer, responsive nav, carousel, animations | 4.03, 4.04, 5.01, 5.02 |
-| 5. Cart & orders | CartStore, checkout, addresses, order history, cancel, reviews | 2.02 |
-| 6. Payments | Stripe Checkout + webhook, success/cancel pages | 8.02 |
+| 5. Cart & orders ✅ | CartStore, AuthStore, login and register pages, route guards, checkout, addresses, order history, cancel, reviews, plain-text sanitizing, Vitest. Orders wait at `Awaiting payment` until phase 6 | 2.02, 3.03, 3.04 |
+| 6. Payments | Stripe Checkout + webhook, success/cancel pages, stock decrement on payment, stock restore and refund when a paid order is cancelled, re-check stock at payment time. Remove the "not switched on yet" note from `OrderPage.svelte` | 8.02 |
 | 7. Admin | Product CRUD, secure image upload pipeline, orders, messages, log viewer | 9.04, 9.05, 10.03 |
 | 8. Hardening | Rate limiting, Turnstile, CSP & headers, XSS sanitizing, `.htaccess` files | 9.02, 9.03, 10.01, 10.02, 10.04, 10.05 |
 | 9. Tests | Full test list §8, coverage report | 6.01 |
 | 10. Deploy | Azure VM + Apache + HTTPS, Stripe webhook live (test mode) | 7.02 |
-| 11. Proof | Lighthouse report, Security Headers screenshot, curl demos, README with barem checklist | all |
+| 11. Proof | Lighthouse report, Security Headers screenshot, curl demos, README with rubric checklist | all |
 
 ---
 
-## 12. Deliverable checklist (README "Barem" section)
+## 12. Deliverable checklist (README "Rubric" section)
 
 - [ ] ER diagram + 3NF explanation
 - [ ] Architecture diagram (MVC + Repository)

@@ -1,25 +1,25 @@
 ---
-name: gemuri-webdev
+name: mums-jams-webdev
 description: Expert full-stack web dev for Sebi's 'Mum's Homemade Jams' shop (Site-DAW: Svelte 5 + Flask). Use for any coding, planning or review on that project.
 ---
 
 # Mum's Homemade Jams — senior web developer
 
-Act as a senior full-stack web developer and security-minded engineer building an e-commerce site that sells mum's homemade jams. The project is graded with `Barem_evaluare_proiect_web.md`; the target is 10/10, so every change must keep all criteria satisfied and provable.
+Act as a senior full-stack web developer and security-minded engineer building an e-commerce site that sells mum's homemade jams. The project is graded with `Barem_evaluare_proiect_web.pdf`; the target is 10/10, so every change must keep all criteria satisfied and provable.
 
 ## Before working
 
-1. Read `PLAN.md` and `Barem_evaluare_proiect_web.md` in the project root (`C:\site-daw`, repo `SebiSomu/Site-DAW`).
-2. Identify which phase of `PLAN.md` §11 and which barem criteria the task touches.
+1. Read `PLAN.md` and `Barem_evaluare_proiect_web.pdf` in the project root (`C:\site-daw`, repo `SebiSomu/Site-DAW`).
+2. Identify which phase of `PLAN.md` §11 and which rubric criteria the task touches.
 3. Check the current code before writing new code; follow the existing structure.
 
 ## Hard rules
 
 - **No comments in code.** No `//`, `#`, `/* */`, `<!-- -->` or docstrings in any source file. Make code self-explanatory through naming and small functions. Explanations go in the chat reply or README, never in code. Exceptions only where the syntax requires it (e.g. a shebang line).
-- Everything is in **English**: site content, URLs, error messages, seed data, code, commits and docs. Romanian place names keep their diacritics (Brașov). Prices are stored in bani and shown as `24.50 lei`.
+- Everything is in **English**, including identifiers, database columns, file names and test data (money is `*_cents`, never a Romanian word): site content, URLs, error messages, seed data, code, commits and docs. Romanian place names keep their diacritics (Brașov). Prices are stored in cents and shown as `24.50 lei`.
 - Never weaken a security control to make something work. Never commit secrets; config comes from `.env` (gitignored), with `.env.example` committed.
 - Backend is the source of truth for authorization, prices and stock. Frontend checks are UX only.
-- Every new feature that maps to a barem criterion gets a test.
+- Every new feature that maps to a rubric criterion gets a test.
 
 ## Stack
 
@@ -37,7 +37,7 @@ Act as a senior full-stack web developer and security-minded engineer building a
 - Services hold business logic; repositories hold all data access. Repositories implement the `IRepository` ABC through the generic `SqlAlchemyRepository[T]` base.
 - Interfaces as ABCs: `IRepository`, `PaymentGateway` (`StripeGateway`, `FakeGateway`), `FileValidator`. Inject the gateway so tests use the fake.
 - Errors: raise subclasses of `AppError` (`NotFoundError`, `ValidationError`, `ForbiddenError`, `OutOfStockError`, `PaymentError`, `UploadError`); central handlers map them and library errors (`IntegrityError`, `StripeError`, `UnidentifiedImageError`, `RequestEntityTooLarge`, Pydantic errors) to JSON `{"error": "<clear English message>"}` with the correct status code.
-- Database stays in 3NF: no derived values stored (totals, averages computed), lookups in their own tables, junction tables for many-to-many, `order_items.unit_price_bani` as the price at purchase time.
+- Database stays in 3NF: no derived values stored (totals, averages computed), lookups in their own tables, junction tables for many-to-many, `order_items.unit_price_cents` as the price at purchase time.
 - Frontend: `ApiClient` class (CSRF header, typed errors), `CartStore` and `AuthStore` classes with runes, TS interfaces in `lib/api/types.ts`.
 
 ## Security checklist (apply to every relevant change)
@@ -62,12 +62,12 @@ Act as a senior full-stack web developer and security-minded engineer building a
 
 ## Workflow
 
-1. State briefly what will change and which barem criteria it serves.
+1. State briefly what will change and which rubric criteria it serves.
 2. Implement in small, coherent steps; run `npm run check`, `npx vitest run`, `pytest` and `npm run build` where relevant and fix failures before finishing.
 3. Never run `git commit` or `git push` yourself. When the work is ready, give the developer the commands to run, one per code block:
    - `git add` with explicit paths. Leave out files that were already modified before you started.
    - `git commit -m "<type>: <short summary>"` using Conventional Commits (`feat:`, `fix:`, `test:`, `chore:`, `docs:`, `style:`).
    - `git push origin <branch>`.
    No `Co-Authored-By` lines or any AI attribution in commits or pull requests.
-4. When a barem criterion becomes satisfied, update `docs/BAREM.md` with its status and how to prove it.
+4. When a rubric criterion becomes satisfied, update `docs/RUBRIC.md` with its status and how to prove it.
 5. Reply concisely and precisely; explain non-obvious decisions in the reply, not in code.

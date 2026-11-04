@@ -34,7 +34,7 @@ erDiagram
     varchar name
     varchar slug UK
     text description
-    int price_bani
+    int price_cents
     int weight_grams
     int stock
     bool is_active
@@ -72,14 +72,14 @@ erDiagram
     int order_id PK,FK
     int product_id PK,FK
     int quantity
-    int unit_price_bani
+    int unit_price_cents
   }
   PAYMENTS {
     int id PK
     int order_id FK,UK
     varchar provider
     varchar provider_reference UK
-    int amount_bani
+    int amount_cents
     varchar status
     datetime paid_at
   }
@@ -99,17 +99,17 @@ erDiagram
     text message
     datetime created_at
   }
-  ROLES ||--o{ USERS : "are"
-  USERS ||--o{ ADDRESSES : "deține"
-  USERS ||--o{ ORDERS : "plasează"
-  USERS ||--o{ REVIEWS : "scrie"
-  CATEGORIES ||--o{ PRODUCTS : "grupează"
-  PRODUCTS ||--o{ PRODUCT_IMAGES : "are"
-  PRODUCTS ||--o{ PRODUCT_INGREDIENTS : "conține"
-  INGREDIENTS ||--o{ PRODUCT_INGREDIENTS : "apare în"
-  PRODUCTS ||--o{ ORDER_ITEMS : "vândut ca"
-  PRODUCTS ||--o{ REVIEWS : "primește"
-  ORDERS ||--|{ ORDER_ITEMS : "conține"
-  ORDER_STATUSES ||--o{ ORDERS : "descrie"
-  ADDRESSES ||--o{ ORDERS : "livrare la"
-  ORDERS ||--o| PAYMENTS : "plătită prin"
+  ROLES ||--o{ USERS : "has"
+  USERS ||--o{ ADDRESSES : "owns"
+  USERS ||--o{ ORDERS : "places"
+  USERS ||--o{ REVIEWS : "writes"
+  CATEGORIES ||--o{ PRODUCTS : "groups"
+  PRODUCTS ||--o{ PRODUCT_IMAGES : "has"
+  PRODUCTS ||--o{ PRODUCT_INGREDIENTS : "contains"
+  INGREDIENTS ||--o{ PRODUCT_INGREDIENTS : "used in"
+  PRODUCTS ||--o{ ORDER_ITEMS : "sold as"
+  PRODUCTS ||--o{ REVIEWS : "receives"
+  ORDERS ||--|{ ORDER_ITEMS : "contains"
+  ORDER_STATUSES ||--o{ ORDERS : "describes"
+  ADDRESSES ||--o{ ORDERS : "ships to"
+  ORDERS ||--o| PAYMENTS : "paid by"
