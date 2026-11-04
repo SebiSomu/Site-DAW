@@ -14,6 +14,11 @@ class Router {
     window.scrollTo(0, 0)
   }
 
+  replace(href: string): void {
+    window.history.replaceState(null, '', new URL(href, window.location.origin))
+    this.sync()
+  }
+
   private sync(): void {
     this.url = new URL(window.location.href)
   }

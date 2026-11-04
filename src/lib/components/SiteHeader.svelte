@@ -1,11 +1,17 @@
 <script lang="ts">
   import { router } from '../router/router.svelte'
   import { SHELVES, shelfHref } from '../shelves'
+  import { auth } from '../stores/auth.svelte'
+  import { cart } from '../stores/cart.svelte'
 
   let open = $state(false)
 
   const here = $derived(router.url.pathname + router.url.search)
-  const links = [{ href: '/products', label: 'All jars' }, ...SHELVES.map((shelf) => ({ href: shelfHref(shelf.slug), label: shelf.name }))]
+  const links = $derived([
+    { href: '/products', label: 'All jars' },
+    ...SHELVES.map((shelf) => ({ href: shelfHref(shelf.slug), label: shelf.name })),
+    auth.user ? { href: '/account', label: 'My account' } : { href: '/login', label: 'Log in' },
+  ])
 
   $effect(() => {
     void here
@@ -38,6 +44,17 @@
         <span class="brand-top">Mum's</span>
         <span class="brand-name">Homemade<br />Jams</span>
       </span>
+    </a>
+    <a class="cart-link" href="/cart" aria-current={here === '/cart' ? 'page' : undefined}>
+      {#key cart.count}
+        <svg class:lid-pop={cart.count > 0} viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+          <path class="cart-lid" d="M5 4h14a1 1 0 0 1 1 1v3H4V5a1 1 0 0 1 1-1z" />
+          <path class="cart-jar" d="M6 8h12v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z" />
+        </svg>
+      {/key}
+      <span class="cart-word">Cart</span>
+      <span class="cart-count">{cart.count}</span>
+      <span class="visually-hidden">{cart.count === 1 ? 'jar' : 'jars'}</span>
     </a>
     <button
       class="button button-quiet menu-toggle"

@@ -94,7 +94,7 @@
   >
     {#each [current] as index (index)}
       {@const slide = SHELVES[index]}
-      <article
+      <div
         class="book-page"
         role="group"
         aria-roledescription="slide"
@@ -110,7 +110,7 @@
           <p>{slide.note}</p>
           <p><a class="button" href={shelfHref(slide.slug)}>See the {slide.name.toLowerCase()}</a></p>
         </div>
-      </article>
+      </div>
     {/each}
   </div>
 

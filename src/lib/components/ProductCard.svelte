@@ -15,7 +15,7 @@
   {/if}
   <h3><a href={`/products/${product.slug}`}>{product.name}</a></h3>
   <p class="meta">{product.category.name} · {product.weight_grams} g</p>
-  <p class="price">{formatPrice(product.price_bani)}</p>
+  <p class="price">{formatPrice(product.price_cents)}</p>
   {#if product.stock === 0}
     <p class="sold-out">Sold out</p>
   {/if}

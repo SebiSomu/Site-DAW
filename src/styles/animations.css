@@ -20,6 +20,24 @@
   }
 }
 
+@keyframes lid-pop {
+  0% {
+    transform: translateY(0) rotate(0);
+  }
+
+  40% {
+    transform: translateY(-5px) rotate(-10deg);
+  }
+
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+}
+
+.lid-pop .cart-lid {
+  animation: lid-pop 420ms var(--ease-out);
+}
+
 .sway {
   rotate: var(--tilt, 0deg);
   transform-origin: 50% 0;

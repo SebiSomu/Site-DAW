@@ -15,6 +15,7 @@ export class ApiError extends Error {
 
 export class ApiClient {
   private readonly baseUrl: string
+  private csrfToken: Promise<string> | null = null
 
   constructor(baseUrl = '/api') {
     this.baseUrl = baseUrl
@@ -29,12 +30,40 @@ export class ApiClient {
     return this.request<T>(search ? `${path}?${search}` : path)
   }
 
-  private async request<T>(path: string): Promise<T> {
+  post<T = unknown>(path: string, body?: unknown): Promise<T> {
+    return this.write<T>('POST', path, body)
+  }
+
+  delete<T = unknown>(path: string): Promise<T> {
+    return this.write<T>('DELETE', path)
+  }
+
+  private async write<T>(method: string, path: string, body?: unknown): Promise<T> {
+    const token = await this.fetchCsrfToken()
+    return this.request<T>(path, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': token },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    })
+  }
+
+  private fetchCsrfToken(): Promise<string> {
+    this.csrfToken ??= this.request<{ csrf_token: string }>('/csrf')
+      .then((body) => body.csrf_token)
+      .catch((caught: unknown) => {
+        this.csrfToken = null
+        throw caught
+      })
+    return this.csrfToken
+  }
+
+  private async request<T>(path: string, init: { method?: string; headers?: Record<string, string>; body?: string } = {}): Promise<T> {
     let response: Response
     try {
       response = await fetch(this.baseUrl + path, {
+        ...init,
         credentials: 'same-origin',
-        headers: { Accept: 'application/json' },
+        headers: { Accept: 'application/json', ...init.headers },
       })
     } catch {
       throw new ApiError(UNREACHABLE, 0)

@@ -2,8 +2,14 @@
   import { ApiError, api, errorMessage } from '../lib/api/client'
   import type { ProductDetail } from '../lib/api/types'
   import JarArt from '../lib/components/JarArt.svelte'
+  import QuantityPicker from '../lib/components/QuantityPicker.svelte'
+  import ReviewForm from '../lib/components/ReviewForm.svelte'
   import Seo from '../lib/components/Seo.svelte'
   import { formatDate, formatPrice, formatStars } from '../lib/format'
+  import { loginHref } from '../lib/redirects'
+  import { router } from '../lib/router/router.svelte'
+  import { auth } from '../lib/stores/auth.svelte'
+  import { MAX_JARS_PER_LINE, cart } from '../lib/stores/cart.svelte'
 
   let { slug }: { slug: string } = $props()
 
@@ -11,9 +17,17 @@
   let error = $state('')
   let missing = $state(false)
 
-  const pricePer100g = $derived(product ? formatPrice(Math.round((product.price_bani * 100) / product.weight_grams)) : '')
+  let quantity = $state(1)
+  let added = $state(false)
+  let canReview = $state(false)
 
-  $effect(() => {
+  const pricePer100g = $derived(product ? formatPrice(Math.round((product.price_cents * 100) / product.weight_grams)) : '')
+  const productId = $derived(product?.id)
+  const stock = $derived(product?.stock ?? 0)
+  const inCart = $derived(productId ? cart.quantityOf(productId) : 0)
+  const roomLeft = $derived(Math.min(stock, MAX_JARS_PER_LINE) - inCart)
+
+  function load(): void {
     api
       .get<{ product: ProductDetail }>(`/products/${encodeURIComponent(slug)}`)
       .then((body) => (product = body.product))
@@ -21,13 +35,37 @@
         missing = caught instanceof ApiError && caught.status === 404
         error = errorMessage(caught)
       })
+  }
+
+  $effect(load)
+
+  $effect(() => {
+    if (!auth.user || !productId) {
+      canReview = false
+      return
+    }
+    api
+      .get<{ can_review: boolean }>(`/products/${productId}/reviews/eligibility`)
+      .then((body) => (canReview = body.can_review))
+      .catch(() => (canReview = false))
   })
+
+  function addToCart(id: number): void {
+    cart.add(id, Math.min(quantity, roomLeft), Math.min(stock, MAX_JARS_PER_LINE))
+    quantity = 1
+    added = true
+  }
+
+  function reviewPosted(): void {
+    canReview = false
+    load()
+  }
 </script>
 
 {#if product}
   <Seo
     title={product.name}
-    description={`${product.name}, ${product.weight_grams} g, ${formatPrice(product.price_bani)}. ${product.description}`}
+    description={`${product.name}, ${product.weight_grams} g, ${formatPrice(product.price_cents)}. ${product.description}`}
     image={product.image?.url}
   />
 
@@ -57,7 +95,7 @@
 
     <div class="details">
       <h1>{product.name}</h1>
-      <p class="price product-price">{formatPrice(product.price_bani)}</p>
+      <p class="price product-price">{formatPrice(product.price_cents)}</p>
       {#if product.average_rating !== null}
         <p>
           <span aria-hidden="true">{formatStars(product.average_rating)}</span>
@@ -82,11 +120,32 @@
         </tbody>
       </table>
       </div>
+
+      <div class="buy">
+        {#if roomLeft > 0}
+          <QuantityPicker label="How many jars" value={Math.min(quantity, roomLeft)} max={roomLeft} onchange={(next) => (quantity = next)} />
+          <button class="button" type="button" onclick={() => addToCart(product!.id)}>Add to cart</button>
+        {:else if stock > 0}
+          <p class="form-note">You have every jar we can offer in your cart.</p>
+        {:else}
+          <p class="sold-out">Sold out</p>
+        {/if}
+        <p class="buy-note" role="status">
+          {#if added}
+            {inCart === 1 ? '1 jar' : `${inCart} jars`} of this in your cart. <a href="/cart">View your cart</a>
+          {/if}
+        </p>
+      </div>
     </div>
   </article>
 
   <section class="reviews" aria-labelledby="reviews-heading">
     <h2 id="reviews-heading">Reviews</h2>
+    {#if canReview}
+      <ReviewForm productId={product.id} onposted={reviewPosted} />
+    {:else if auth.ready && !auth.user}
+      <p>Bought this jar? <a href={loginHref(router.url.pathname)}>Log in to leave a review</a>.</p>
+    {/if}
     {#if product.reviews.length}
       <ul>
         {#each product.reviews as review (review.id)}
@@ -189,6 +248,19 @@
     padding: var(--space-lg);
     background: var(--color-kraft-light);
     border-radius: var(--radius-paper);
+  }
+
+  .buy {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-md);
+    margin-top: var(--space-md);
+  }
+
+  .buy-note {
+    flex-basis: 100%;
+    min-height: 1.6rem;
   }
 
   .reviews {

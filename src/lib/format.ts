@@ -1,5 +1,5 @@
-export function formatPrice(bani: number): string {
-  return `${(bani / 100).toFixed(2)} lei`
+export function formatPrice(cents: number): string {
+  return `${(cents / 100).toFixed(2)} lei`
 }
 
 export function formatDate(iso: string): string {
