@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 from flask_wtf.csrf import CSRFError
 from pydantic import ValidationError as PydanticValidationError
 from sqlalchemy.exc import IntegrityError
-from werkzeug.exceptions import HTTPException, InternalServerError
+from werkzeug.exceptions import HTTPException, InternalServerError, RequestEntityTooLarge
 
 from app.extensions import db
 from app.services.activity_logger import activity_logger
@@ -55,6 +55,16 @@ class PaymentError(AppError):
     message = "We could not reach the payment service. Please try again in a moment."
 
 
+class UploadError(AppError):
+    status_code = 400
+    message = "This photo could not be uploaded."
+
+
+class UploadTooLargeError(UploadError):
+    status_code = 413
+    message = "This file is larger than 12 MB. Please choose a smaller photo."
+
+
 class WebhookError(AppError):
     status_code = 400
     message = "This payment notification could not be verified."
@@ -90,6 +100,11 @@ def register_error_handlers(app: Flask) -> None:
     def handle_csrf_error(error: CSRFError):
         activity_logger.warning("csrf_rejected", error.description)
         return error_response("Your security token is missing or expired. Refresh the page and try again.", 400)
+
+    @app.errorhandler(RequestEntityTooLarge)
+    def handle_too_large(error: RequestEntityTooLarge):
+        activity_logger.warning("upload_rejected", "reason=too_large")
+        return error_response(UploadTooLargeError.message, UploadTooLargeError.status_code)
 
     @app.errorhandler(HTTPException)
     def handle_http_error(error: HTTPException):

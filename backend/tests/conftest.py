@@ -26,7 +26,10 @@ class ApiClient:
 
 @pytest.fixture()
 def app(tmp_path):
-    application = create_app("testing", {"ACTIVITY_LOG_PATH": str(tmp_path / "activity.log")})
+    application = create_app(
+        "testing",
+        {"ACTIVITY_LOG_PATH": str(tmp_path / "activity.log"), "UPLOAD_FOLDER": str(tmp_path / "uploads")},
+    )
     with application.app_context():
         database.create_all()
         yield application

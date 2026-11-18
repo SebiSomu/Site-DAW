@@ -1,6 +1,8 @@
 import os
 
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MAX_UPLOAD_BYTES = 12 * 1024 * 1024
+FORM_OVERHEAD_BYTES = 64 * 1024
 
 
 class BaseConfig:
@@ -15,6 +17,9 @@ class BaseConfig:
     SESSION_COOKIE_SECURE = False
     WTF_CSRF_TIME_LIMIT = None
     ACTIVITY_LOG_PATH = os.environ.get("ACTIVITY_LOG_PATH") or os.path.join(BACKEND_DIR, "logs", "activity.log")
+    UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER") or os.path.join(BACKEND_DIR, "uploads")
+    MAX_UPLOAD_BYTES = MAX_UPLOAD_BYTES
+    MAX_CONTENT_LENGTH = MAX_UPLOAD_BYTES + FORM_OVERHEAD_BYTES
     PAYMENT_GATEWAY = "stripe"
     STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
     STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")

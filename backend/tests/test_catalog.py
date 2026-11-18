@@ -110,6 +110,6 @@ def test_sitemap_lists_categories_and_products(api):
 
 
 def test_products_are_listed_a_to_z_by_default(api):
-    names = [item["name"] for item in api.get("/api/products?per_page=50").get_json()["items"]]
+    names = [item["name"] for item in api.get("/api/products?per_page=48").get_json()["items"]]
 
     assert names == sorted(names)

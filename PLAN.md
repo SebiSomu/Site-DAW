@@ -350,7 +350,7 @@ Free services used: Azure for Students, Let's Encrypt, Stripe test mode, Cloudfl
 | 4. UI shell ✅ | Styles (5 CSS files), header/footer, responsive nav, carousel, animations | 4.03, 4.04, 5.01, 5.02 |
 | 5. Cart & orders ✅ | CartStore, AuthStore, login and register pages, route guards, checkout, addresses, order history, cancel, reviews, plain-text sanitizing, Vitest. Orders wait at `Awaiting payment` until phase 6 | 2.02, 3.03, 3.04 |
 | 6. Payments | Stripe Checkout + webhook, success/cancel pages, stock decrement on payment, stock restore and refund when a paid order is cancelled, re-check stock at payment time. Remove the "not switched on yet" note from `OrderPage.svelte` | 8.02 |
-| 7. Admin | Product CRUD, secure image upload pipeline, orders, messages, log viewer | 9.04, 9.05, 10.03 |
+| 7. Admin (in progress) | Product CRUD, secure image upload pipeline, orders, messages, log viewer | 9.04, 9.05, 10.03 |
 | 8. Hardening | Rate limiting, Turnstile, CSP & headers, XSS sanitizing, `.htaccess` files | 9.02, 9.03, 10.01, 10.02, 10.04, 10.05 |
 | 9. Tests | Full test list §8, coverage report | 6.01 |
 | 10. Deploy | Azure VM + Apache + HTTPS, Stripe webhook live (test mode) | 7.02 |
@@ -417,6 +417,40 @@ Rubric 8.02: a working online payment system. Do them in order; each ends with t
 - Walk through: card `4242 4242 4242 4242` (order `Paid`, stock down, review form appears), declined card `4000 0000 0000 0002`, abandoned checkout, cancel with refund, resent event (`stripe events resend`).
 - Update `docs/RUBRIC.md` (8.02), `README.md` and the use case UC4; add screenshots of a paid order and of the Stripe dashboard.
 - The live webhook endpoint on the Azure VM is set up in phase 10.
+
+### Phase 7 subplans
+
+Rubric 9.04, 9.05, 10.03 (uploads) and the admin side of 2.04, 3.04 and 7.01. Each step ends with its tests green.
+
+**7.1 Secure image upload pipeline ✅**
+
+- `MAX_UPLOAD_BYTES = 12 MB` per file; `MAX_CONTENT_LENGTH` is that plus 64 KB for the multipart envelope, so a 12 MB photo still fits. Over the limit is `413` with a clear message, logged as `upload_rejected reason=too_large`. Apache `LimitRequestBody` gets the same number in phase 8.
+- `FileValidator` ABC with four checks, run in order: `SizeValidator` (empty or over 12 MB), `ExtensionValidator` (only `.jpg .jpeg .png .webp`), `ImageFormatValidator` (Pillow must open, verify and fully decode it; the real format must match the extension; at least 200 px a side, at most 40 megapixels), `TrailingDataValidator` (walks the JPEG segments, PNG chunks or WebP RIFF size to the real end marker; any byte after it is rejected, which stops appended ZIPs and other polyglots).
+- `ImageSanitizer` applies the camera rotation, copies only the pixels into a new image (EXIF, ICC, text chunks and comments are dropped), scales to at most 1600 px and re-encodes as lossy WebP, which also destroys LSB-hidden payloads.
+- `UploadStorage` writes under a random UUID name (`<32 hex>.webp`), never the client's name; `/uploads/<name>` serves only names of that shape, as `image/webp` with `nosniff`.
+- Every rejection is logged with the check that failed and a `secure_filename` version of the name; a stored photo is logged as `image_stored`.
+- Tests: `backend/tests/test_uploads.py`.
+
+**7.2 Admin products API**
+
+- `GET/POST /api/admin/products`, `GET/PUT/DELETE /api/admin/products/<id>`; delete is refused for a jar that is in past orders (hide it instead).
+- `POST /api/admin/products/<id>/images` (multipart, through the pipeline), `POST /api/admin/images/<id>/main`, `DELETE /api/admin/images/<id>`.
+
+**7.3 Admin orders and dashboard**
+
+- `GET /api/admin/orders?status=`, `GET /api/admin/orders/<id>`, `PATCH /api/admin/orders/<id>/status`: paid → confirmed → shipped → delivered; cancelling refunds through the existing payment path. Only the webhook can mark an order paid.
+- `GET /api/admin/summary`: sales, orders by status, low stock, recent orders, all computed.
+
+**7.4 Contact form, messages and activity log**
+
+- `POST /api/contact` (CAPTCHA and rate limit come in phase 8), `GET /api/admin/messages`, `DELETE /api/admin/messages/<id>`.
+- `GET /api/admin/logs`: reads `activity.log` and its rotated files, filters by user, action, level and date, newest first, paginated.
+
+**7.5 Admin frontend and contact page**
+
+- Admin link in the header for admins only, `AdminGate` (the backend still enforces the role), pages from §5, `/contact`.
+
+**7.6 Docs and browser check**
 
 ---
 
