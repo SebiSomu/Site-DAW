@@ -94,6 +94,9 @@ class ProductRepository(SqlAlchemyRepository[Product]):
         )
         return self.session.execute(statement).rowcount == 1
 
+    def restore_stock(self, product_id: int, quantity: int) -> None:
+        self.session.execute(update(Product).where(Product.id == product_id).values(stock=Product.stock + quantity))
+
     def slug_exists(self, slug: str) -> bool:
         return self.find_one_by(slug=slug) is not None
 

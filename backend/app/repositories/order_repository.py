@@ -1,6 +1,6 @@
-from typing import Sequence
+from typing import Collection, Sequence
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
 from app.models import PURCHASED_STATUSES, Order, OrderItem, OrderStatus, Payment
@@ -48,3 +48,11 @@ class PaymentRepository(SqlAlchemyRepository[Payment]):
 
     def get_by_provider_reference(self, reference: str) -> Payment | None:
         return self.find_one_by(provider_reference=reference)
+
+    def change_status(self, payment_id: int, allowed: Collection[str], new_status: str) -> bool:
+        statement = (
+            update(Payment)
+            .where(Payment.id == payment_id, Payment.status.in_(list(allowed)))
+            .values(status=new_status)
+        )
+        return self.session.execute(statement).rowcount == 1

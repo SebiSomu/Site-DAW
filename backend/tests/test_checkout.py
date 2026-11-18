@@ -42,6 +42,10 @@ def send_webhook(app, payload: bytes, signature: str | None = FAKE_SIGNATURE):
         )
 
 
+def cancel(api, order_id: int):
+    return api.post(f"/api/orders/{order_id}/cancel")
+
+
 def set_status(order_id: int, code: OrderStatusCode, session) -> None:
     OrderRepository().get(order_id).status = OrderStatusRepository().get_by_code(code)
     session.commit()
@@ -67,6 +71,13 @@ def order_total():
 def reference(client_api, order_id, session):
     assert pay(client_api, order_id).status_code == 200
     return payment_of(order_id, session).provider_reference
+
+
+@pytest.fixture()
+def paid(app, order_id, reference, fake, session):
+    assert send_webhook(app, fake.complete(reference)).status_code == 200
+    assert order_status(order_id, session) == OrderStatusCode.PAID.value
+    return reference
 
 
 @pytest.fixture()
@@ -377,3 +388,118 @@ def test_failed_refund_returns_an_error_so_the_event_is_retried(app, order_id, r
     assert send_webhook(app, payload).status_code == 200
     assert order_status(order_id, session) == OrderStatusCode.CANCELLED.value
     assert fake.refunded == [reference]
+
+
+def test_cancelling_an_unpaid_order_closes_its_open_session(client_api, order_id, reference, fake, session):
+    response = cancel(client_api, order_id)
+
+    assert response.status_code == 200
+    assert response.get_json()["order"]["status"]["code"] == OrderStatusCode.CANCELLED.value
+    assert fake.checkouts[reference].status is CheckoutStatus.EXPIRED
+    assert payment_of(order_id, session).status == PaymentStatus.FAILED.value
+    assert fake.refunded == []
+
+
+def test_cancelling_an_unpaid_order_whose_session_was_just_paid_is_refused(client_api, order_id, reference, fake, session):
+    fake.complete(reference)
+
+    response = cancel(client_api, order_id)
+
+    assert response.status_code == 409
+    assert response.get_json() == {"error": CheckoutAlreadyPaidError.message}
+    assert order_status(order_id, session) == OrderStatusCode.PENDING_PAYMENT.value
+
+
+def test_cancelling_an_unpaid_order_while_the_gateway_is_down_changes_nothing(client_api, order_id, reference, fake, session):
+    fake.is_down = True
+
+    assert cancel(client_api, order_id).status_code == 502
+
+    assert order_status(order_id, session) == OrderStatusCode.PENDING_PAYMENT.value
+    assert payment_of(order_id, session).status == PaymentStatus.PENDING.value
+    assert fake.checkouts[reference].status is CheckoutStatus.OPEN
+
+
+@pytest.mark.parametrize("code", [OrderStatusCode.PAID, OrderStatusCode.CONFIRMED])
+def test_cancelling_a_paid_order_refunds_it_and_restores_the_stock_once(
+    client_api, order_id, paid, fake, session, activity_log, code
+):
+    set_status(order_id, code, session)
+    before = stock_levels(session)
+
+    response = cancel(client_api, order_id)
+
+    assert response.status_code == 200
+    assert order_status(order_id, session) == OrderStatusCode.CANCELLED.value
+    assert payment_of(order_id, session).status == PaymentStatus.REFUNDED.value
+    assert fake.refunded == [paid]
+    restored = {slug: before[slug] + quantity for slug, quantity in ORDERED.items()}
+    assert stock_levels(session) == restored
+    assert f"payment_refunded | order={order_id} reason=cancelled by the client" in activity_log()
+
+    assert cancel(client_api, order_id).status_code == 409
+    assert stock_levels(session) == restored
+    assert fake.refunded == [paid]
+
+
+def test_failed_refund_leaves_a_paid_order_as_it_was(client_api, order_id, paid, fake, session):
+    before = stock_levels(session)
+    fake.is_down = True
+
+    response = cancel(client_api, order_id)
+
+    assert response.status_code == 502
+    assert response.get_json() == {"error": PaymentError.message}
+    assert order_status(order_id, session) == OrderStatusCode.PAID.value
+    assert payment_of(order_id, session).status == PaymentStatus.SUCCEEDED.value
+    assert stock_levels(session) == before
+    assert fake.refunded == []
+
+
+@pytest.mark.parametrize("code", [OrderStatusCode.SHIPPED, OrderStatusCode.DELIVERED])
+def test_a_shipped_paid_order_cannot_be_cancelled_or_refunded(client_api, order_id, paid, fake, session, code):
+    set_status(order_id, code, session)
+    before = stock_levels(session)
+
+    assert cancel(client_api, order_id).status_code == 409
+
+    assert payment_of(order_id, session).status == PaymentStatus.SUCCEEDED.value
+    assert stock_levels(session) == before
+    assert fake.refunded == []
+
+
+def test_payment_status_changes_only_from_an_allowed_status(order_id, paid, session):
+    payment = payment_of(order_id, session)
+    payments = PaymentRepository()
+
+    assert payments.change_status(payment.id, {PaymentStatus.SUCCEEDED.value}, PaymentStatus.REFUNDED.value) is True
+    assert payments.change_status(payment.id, {PaymentStatus.SUCCEEDED.value}, PaymentStatus.REFUNDED.value) is False
+    session.rollback()
+
+
+def test_stock_is_only_taken_when_enough_is_left(seeded, session):
+    products = ProductRepository()
+    product = jar("apricot-jam")
+    stock = product.stock
+
+    assert products.take_stock(product.id, stock + 1) is False
+    assert products.take_stock(product.id, stock) is True
+    products.restore_stock(product.id, 2)
+    session.commit()
+
+    assert stock_levels(session)["apricot-jam"] == 2
+
+
+def test_concurrent_duplicate_event_is_stopped_by_the_conditional_status_change(
+    app, order_id, reference, fake, session, activity_log, monkeypatch
+):
+    before = stock_levels(session)
+    payload = fake.complete(reference)
+    assert send_webhook(app, payload).status_code == 200
+    set_status(order_id, OrderStatusCode.PENDING_PAYMENT, session)
+    monkeypatch.setattr("app.services.payment_service.SETTLED_PAYMENTS", frozenset())
+
+    assert send_webhook(app, payload).status_code == 200
+
+    assert stock_levels(session) == {slug: before[slug] - quantity for slug, quantity in ORDERED.items()}
+    assert f"webhook_duplicate | order={order_id}" in activity_log()

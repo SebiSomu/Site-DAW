@@ -396,7 +396,7 @@ Rubric 8.02: a working online payment system. Do them in order; each ends with t
 - Log `payment_succeeded`, `payment_failed`, `payment_refunded`, `webhook_rejected`.
 - Tests: plan §8 items 9 and 10, plus duplicate event, oversold jar, amount mismatch, unknown session, cancelled order, and that a paid order makes its jars reviewable.
 
-**6.4 Cancelling and refunds**
+**6.4 Cancelling and refunds ✅**
 
 - `Awaiting payment`: expire the open session first, so it cannot be paid after the order is cancelled.
 - `Paid` or `Confirmed`: refund through the gateway, mark the payment `refunded`, restore the stock, then cancel. If the refund fails, the order stays as it was and the client sees the error.

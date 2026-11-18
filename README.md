@@ -167,7 +167,7 @@ Every `POST` and `DELETE` needs the CSRF token, except the payment webhook, whic
 | DELETE | `/api/addresses/<id>` | owner | Archives the address, so past orders keep it |
 | GET / POST | `/api/orders` | logged in | The client's orders / place one: `{address_id, items, notes}`. `409` when a jar is out of stock |
 | GET | `/api/orders/<id>` | owner | Order detail, `404` for anyone else |
-| POST | `/api/orders/<id>/cancel` | owner | `409` once shipped or already cancelled |
+| POST | `/api/orders/<id>/cancel` | owner | An unpaid order's open payment session is closed first; a paid order is refunded and its jars go back in stock. `409` once shipped, already cancelled or paid a moment ago, `502` when the refund fails (the order is kept) |
 | POST | `/api/orders/<id>/pay` | owner | Opens a card payment for an order `Awaiting payment` and returns `{"checkout_url"}`. The amount comes from the order. A retry replaces the previous session. `409` when the order is not awaiting payment or a jar sold out, `502` when the payment service is unreachable (the order is kept) |
 | POST | `/api/payments/webhook` | Stripe | Signed with `Stripe-Signature`, `400` otherwise. A paid session marks the order `Paid` and takes the jars out of stock; if a jar sold out meanwhile, the amount does not match or the order was cancelled, the payment is refunded and the order cancelled. An expired session leaves the order open to pay again |
 | GET | `/api/products/<id>/reviews/eligibility` | logged in | `{"can_review": true or false}` |
@@ -186,44 +186,3 @@ The logo is a gingham-covered jar lid (`src/lib/components/SiteHeader.svelte`, f
 | ![Home page on a phone](docs/screenshots/home-phone.jpg) | ![Catalogue on a tablet](docs/screenshots/catalogue-tablet.jpg) | ![Home page on a desktop](docs/screenshots/home-desktop.jpg) |
 
 Picture credits: the fruit watercolours in `public/images/plates/` come from the [USDA Pomological Watercolor Collection](https://commons.wikimedia.org/wiki/Category:USDA_Pomological_Watercolor_Collection) (public domain, via Wikimedia Commons). Painters, dates and source pages are listed in [`docs/image-credits.json`](docs/image-credits.json).
-
-## Continuous integration
-
-Every push and pull request to `main` runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml) on GitHub Actions:
-
-- **Backend:** install dependencies, apply migrations, check the models match the migrations (`flask db check`), run `pytest`
-- **Frontend:** `npm ci`, `npm run check`, `npm run build`, and upload `dist/` as a downloadable artifact
-
-A pull request should only be merged when both jobs are green.
-
-## Git workflow
-
-```powershell
-git pull
-git checkout -b feat/feature-name
-git add .
-git commit -m "feat: short description"
-git push -u origin feat/feature-name
-```
-
-Then open a Pull Request on GitHub into `main`.
-
-Rules:
-
-- Don't work directly on `main`; use one branch per feature.
-- Commit messages follow Conventional Commits: `feat:`, `fix:`, `test:`, `chore:`, `docs:`, `style:`.
-- Never commit `.env`, `node_modules/`, `backend/.venv/`, databases or logs (they're already in `.gitignore`).
-- Run `npm run check` and `npm run build` before pushing.
-- No comments in code; explanations go in the Pull Request or the README.
-- All site text is in English. Prices are shown as `24.50 lei`.
-
-## Common problems
-
-| Problem | Fix |
-|---|---|
-| `git push` rejected with `non-fast-forward` | `git pull --rebase origin main`, then `git push` |
-| `npm` is not recognized | Install Node.js and reopen the terminal |
-| `python` opens the Microsoft Store | Install Python from python.org and tick "Add python.exe to PATH" |
-| "We could not reach the shop" on `/products` | Flask isn't running: start it with `flask run` in `backend/` |
-| Many files show as modified after pulling `.gitattributes` | Run `git add --renormalize .` once and commit it (line endings are now normalized to LF) |
-| Port 5173 is busy | Vite picks another port automatically; use the address shown in the terminal |

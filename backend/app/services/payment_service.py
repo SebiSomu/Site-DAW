@@ -9,6 +9,7 @@ from app.services.payments import CheckoutSession, PaymentEvent, PaymentEventKin
 
 NEW_ORDER_HINT = "Please cancel this order and place a new one."
 SETTLED_PAYMENTS = frozenset({PaymentStatus.SUCCEEDED.value, PaymentStatus.REFUNDED.value})
+PAYABLE_PAYMENTS = frozenset({PaymentStatus.PENDING.value, PaymentStatus.FAILED.value})
 
 
 class PaymentService:
@@ -43,6 +44,12 @@ class PaymentService:
             self._on_completed(event)
         elif event.kind is PaymentEventKind.EXPIRED:
             self._on_expired(event)
+
+    def release_for_cancellation(self, order: Order) -> None:
+        if self._has_status(order, OrderStatusCode.PENDING_PAYMENT):
+            self._close_open_checkout(order.payment)
+        elif order.payment is not None and order.payment.status == PaymentStatus.SUCCEEDED.value:
+            self._refund_and_restock(order.payment)
 
     def _payable_order(self, order_id: int, user_id: int) -> Order:
         order = self.orders.get_for_user(order_id, user_id)
@@ -103,6 +110,8 @@ class PaymentService:
             self._refund(payment, f"amount mismatch expected={payment.amount_cents} received={event.amount_cents}")
         elif not self._has_status(order, OrderStatusCode.PENDING_PAYMENT):
             activity_logger.warning("webhook_ignored", f"order={order.id} status={order.status.code}")
+        elif not self.payments.change_status(payment.id, PAYABLE_PAYMENTS, PaymentStatus.SUCCEEDED.value):
+            activity_logger.info("webhook_duplicate", f"order={order.id}")
         elif self._take_stock(order):
             self._mark_paid(payment)
         else:
@@ -126,6 +135,14 @@ class PaymentService:
         payment.order.status = self.statuses.get_by_code(OrderStatusCode.PAID)
         db.session.commit()
         activity_logger.info("payment_succeeded", f"order={payment.order_id} amount_cents={payment.amount_cents}")
+
+    def _refund_and_restock(self, payment: Payment) -> None:
+        self.gateway.refund(payment.provider_reference)
+        allowed = {PaymentStatus.SUCCEEDED.value}
+        if self.payments.change_status(payment.id, allowed, PaymentStatus.REFUNDED.value):
+            for item in payment.order.items:
+                self.products.restore_stock(item.product_id, item.quantity)
+        activity_logger.info("payment_refunded", f"order={payment.order_id} reason=cancelled by the client")
 
     def _refund(self, payment: Payment, reason: str) -> None:
         self.gateway.refund(payment.provider_reference)

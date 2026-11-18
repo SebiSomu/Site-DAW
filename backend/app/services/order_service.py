@@ -9,6 +9,7 @@ from app.security.sanitize import plain_text
 from app.services.activity_logger import activity_logger
 from app.services.address_service import AddressService
 from app.services.cart_service import CartService
+from app.services.payment_service import PaymentService
 
 
 class OrderService:
@@ -18,11 +19,13 @@ class OrderService:
         statuses: OrderStatusRepository | None = None,
         addresses: AddressService | None = None,
         cart: CartService | None = None,
+        payments: PaymentService | None = None,
     ) -> None:
         self.orders = orders or OrderRepository()
         self.statuses = statuses or OrderStatusRepository()
         self.addresses = addresses or AddressService()
         self.cart = cart or CartService()
+        self.payments = payments or PaymentService()
 
     def place(self, user_id: int, data: OrderRequest) -> Order:
         address = self.addresses.get_active(data.address_id, user_id)
@@ -56,6 +59,7 @@ class OrderService:
         order = self.get_for_user(order_id, user_id)
         if not order.is_cancellable:
             raise ConflictError("This order can no longer be cancelled.")
+        self.payments.release_for_cancellation(order)
         order.status = self.statuses.get_by_code(OrderStatusCode.CANCELLED)
         db.session.commit()
         activity_logger.info("order_cancelled", f"order={order.id}")
