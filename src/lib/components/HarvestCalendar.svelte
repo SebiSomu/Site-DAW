@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { harvestLabel, harvestRows } from '../harvest'
+  import { harvestLabel, harvestRows, MONTH_NAMES } from '../harvest'
   import { productHref } from '../seasons'
   import FruitArt from './FruitArt.svelte'
 
-  const MONTH_LETTERS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
+  const MONTH_ABBREVIATIONS = MONTH_NAMES.map((name) => name.slice(0, 3))
 
   const rows = harvestRows()
   const currentMonth = new Date().getMonth()
@@ -16,8 +16,8 @@
     <div class="head" aria-hidden="true">
       <span></span>
       <span class="months">
-        {#each MONTH_LETTERS as letter, index (index)}
-          <span>{letter}</span>
+        {#each MONTH_ABBREVIATIONS as abbreviation (abbreviation)}
+          <span>{abbreviation}</span>
         {/each}
       </span>
     </div>
@@ -83,8 +83,10 @@
 
   .months {
     padding-bottom: 0.3rem;
-    font-size: var(--text-sm);
+    font-size: 0.75rem;
     font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     color: var(--color-ink-soft);
     text-align: center;
   }
@@ -163,6 +165,12 @@
 
     .name {
       font-size: 1rem;
+    }
+
+    .months span {
+      justify-self: center;
+      writing-mode: vertical-rl;
+      rotate: 180deg;
     }
   }
 </style>

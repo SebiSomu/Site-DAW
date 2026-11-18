@@ -72,9 +72,16 @@
         at seven in the morning to ask whether there was any plum butter left.
       </p>
       <p>
-        Every jar on these shelves starts the same way: fruit picked when it is ready and not a day before, one copper
-        pot, and an afternoon nobody is allowed to rush.
+        Every jar on these shelves starts the same way: fruit picked when it is ready and not a day before, washed by
+        hand, and one copper pot. Mum stirs, tastes, waits and tastes again, and nothing goes into a jar until she is
+        happy with it. It is an afternoon nobody is allowed to rush.
       </p>
+      <p>
+        We are dedicated to this, and we put a great deal of love into it. Every batch gets our full attention, from
+        sorting the fruit to writing the date on the lid. We cook in small batches, we take no shortcuts, and nothing
+        leaves our kitchen that we would not happily put on our own breakfast table.
+      </p>
+      <p class="signoff">With love and a lot of patience, Mum and her son</p>
     </div>
     <HarvestCalendar />
   </section>
@@ -196,6 +203,11 @@
 </div>
 
 <style>
+  .about-hero {
+    align-items: start;
+    margin-top: calc(var(--space-lg) * -1);
+  }
+
   .hero-text,
   .notebook-text,
   .rules-text,
@@ -213,12 +225,20 @@
     rotate: -2deg;
   }
 
+  .signoff {
+    font-family: var(--font-hand);
+    font-size: 1.7rem;
+    line-height: 1.1;
+    color: var(--color-plum);
+    rotate: -1deg;
+  }
+
   .lede {
     max-width: 34rem;
     font-size: var(--text-lg);
   }
 
-  .hero-text p:last-child,
+  .hero-text p,
   .section-head p {
     max-width: 34rem;
   }

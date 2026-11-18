@@ -192,13 +192,13 @@
 
 .footer-inner {
   display: grid;
-  gap: var(--space-xl);
-  padding-block: var(--space-2xl) var(--space-xl);
+  gap: var(--space-lg);
+  padding-block: var(--space-xl) var(--space-lg);
 }
 
 .footer-name {
   font-family: var(--font-label);
-  font-size: clamp(2.6rem, 1rem + 7vw, 7rem);
+  font-size: clamp(1.9rem, 1rem + 3.5vw, 3.6rem);
   font-weight: 700;
   line-height: 0.95;
   letter-spacing: -0.03em;
@@ -207,11 +207,12 @@
 
 .footer-columns {
   display: grid;
-  gap: var(--space-lg);
+  gap: var(--space-md);
+  font-size: var(--text-sm);
 }
 
 .footer-columns h2 {
-  font-size: 1.9rem;
+  font-size: 1.5rem;
   color: var(--color-ink);
 }
 
