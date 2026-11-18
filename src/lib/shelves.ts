@@ -17,7 +17,7 @@ export const SHELVES: Shelf[] = [
   {
     slug: 'preserves',
     name: 'Preserves',
-    note: 'Whole fruit in clear syrup, made from the recipes Mum knows by heart.',
+    note: 'Whole fruit packed in thick syrup, made from the recipes Mum knows by heart.',
     image: '/images/plates/sour-cherry.jpg',
     imageAlt: 'Watercolour of four Montmorency sour cherries beside pencil-drawn leaves, painted in 1915',
   },

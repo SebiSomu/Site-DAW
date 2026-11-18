@@ -5,11 +5,11 @@ from app.seed import DatabaseSeeder
 
 def test_seed_creates_reference_data_catalog_and_accounts(app, session):
     report = DatabaseSeeder().run(include_demo_client=True)
-    assert (report.roles, report.statuses, report.categories, report.products, report.users) == (2, 6, 4, 13, 2)
+    assert (report.roles, report.statuses, report.categories, report.products, report.users) == (2, 6, 4, 20, 2)
     assert session.query(Role).count() == 2
     assert session.query(OrderStatus).count() == 6
     assert session.query(Category).count() == 4
-    assert session.query(Product).count() == 13
+    assert session.query(Product).count() == 20
     assert session.query(User).count() == 2
 
 

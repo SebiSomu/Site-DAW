@@ -6,6 +6,7 @@
   import ReviewForm from '../lib/components/ReviewForm.svelte'
   import Seo from '../lib/components/Seo.svelte'
   import { formatDate, formatPrice, formatStars } from '../lib/format'
+  import { jarPhoto } from '../lib/jars'
   import { loginHref } from '../lib/redirects'
   import { router } from '../lib/router/router.svelte'
   import { auth } from '../lib/stores/auth.svelte'
@@ -23,6 +24,7 @@
 
   const pricePer100g = $derived(product ? formatPrice(Math.round((product.price_cents * 100) / product.weight_grams)) : '')
   const productId = $derived(product?.id)
+  const photo = $derived(product ? jarPhoto(product) : null)
   const stock = $derived(product?.stock ?? 0)
   const inCart = $derived(productId ? cart.quantityOf(productId) : 0)
   const roomLeft = $derived(Math.min(stock, MAX_JARS_PER_LINE) - inCart)
@@ -66,7 +68,7 @@
   <Seo
     title={product.name}
     description={`${product.name}, ${product.weight_grams} g, ${formatPrice(product.price_cents)}. ${product.description}`}
-    image={product.image?.url}
+    image={product.image?.url ?? photo?.src}
   />
 
   <nav aria-label="Breadcrumb">
@@ -88,7 +90,20 @@
       {:else}
         <figure class="paper">
           <span class="tape" aria-hidden="true"></span>
-          <JarArt {product} />
+          {#if photo}
+            <img
+              src={photo.src}
+              srcset={photo.srcset}
+              sizes="(min-width: 1024px) 34rem, 100vw"
+              alt={photo.alt}
+              width="1024"
+              height="1024"
+              fetchpriority="high"
+            />
+            <figcaption class="photo-note">Illustrative photo</figcaption>
+          {:else}
+            <JarArt {product} />
+          {/if}
         </figure>
       {/each}
     </div>
@@ -253,6 +268,13 @@
     aspect-ratio: 1;
     object-fit: cover;
     background: var(--color-paper-shade);
+  }
+
+  .photo-note {
+    padding-top: var(--space-xs);
+    font-size: var(--text-sm);
+    color: var(--color-ink-soft);
+    text-align: right;
   }
 
   .details {

@@ -1,9 +1,7 @@
 <script lang="ts">
-  import JarArt from '../lib/components/JarArt.svelte'
+  import HarvestCalendar from '../lib/components/HarvestCalendar.svelte'
   import Seo from '../lib/components/Seo.svelte'
   import { SEASONS, productHref } from '../lib/seasons'
-
-  const SHELF_JARS = SEASONS.flatMap((season) => season.jars.slice(0, 1))
 
   const RULES = [
     'If you would not eat the fruit fresh, it does not go in the pot.',
@@ -78,16 +76,7 @@
         pot, and an afternoon nobody is allowed to rush.
       </p>
     </div>
-    <figure class="paper pantry">
-      <span class="tape" aria-hidden="true"></span>
-      <ul class="pantry-jars">
-        {#each SHELF_JARS as jar (jar.slug)}
-          <li><JarArt product={jar} /></li>
-        {/each}
-      </ul>
-      <div class="pantry-board" aria-hidden="true"></div>
-      <figcaption>One jar from every season, lined up on the pantry shelf.</figcaption>
-    </figure>
+    <HarvestCalendar />
   </section>
 
   <section class="split notebook" aria-labelledby="notebook-title">
@@ -136,15 +125,11 @@
             <p class="season-months">{season.months}</p>
             <h3 id={`season-${season.id}`}>{season.title}</h3>
             <p>{season.story}</p>
-            {#if season.jars.length}
-              <ul class="tag-list" aria-label={`Jars made in ${season.months}`}>
-                {#each season.jars as jar (jar.slug)}
-                  <li><a class="tag" href={productHref(jar.slug)}>{jar.name}</a></li>
-                {/each}
-              </ul>
-            {:else}
-              <p class="season-rest">Nothing on the fire. See you in May.</p>
-            {/if}
+            <ul class="tag-list" aria-label={`Jars made in ${season.months}`}>
+              {#each season.jars as jar (jar.slug)}
+                <li><a class="tag" href={productHref(jar.slug)}>{jar.name}</a></li>
+              {/each}
+            </ul>
           </article>
         </li>
       {/each}
@@ -238,38 +223,6 @@
     max-width: 34rem;
   }
 
-  .pantry {
-    margin: 0;
-    padding: var(--space-xl) var(--space-lg) var(--space-md);
-  }
-
-  .pantry-jars {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    align-items: end;
-    gap: var(--space-xs);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .pantry-jars li:nth-child(odd) {
-    rotate: -2deg;
-  }
-
-  .pantry-jars li:nth-child(even) {
-    rotate: 1.5deg;
-  }
-
-  .pantry-board {
-    height: 0.9rem;
-    margin-top: -0.35rem;
-    border-radius: var(--radius-paper);
-    background: linear-gradient(180deg, var(--color-kraft) 0 55%, var(--color-kraft-deep) 55%);
-    box-shadow: 0 6px 10px -6px rgb(59 31 36 / 0.45);
-  }
-
-  .pantry figcaption,
   .snapshot figcaption {
     padding-top: var(--space-sm);
     font-family: var(--font-hand);
@@ -371,12 +324,6 @@
 
   .season .tag-list {
     margin-top: var(--space-xs);
-  }
-
-  .season-rest {
-    font-family: var(--font-hand);
-    font-size: 1.45rem;
-    color: var(--color-plum);
   }
 
   .rules {

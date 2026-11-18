@@ -102,7 +102,7 @@ Before the first run, edit `backend/.env`: set a long random `SECRET_KEY` and an
 |---|---|
 | `pip install -r requirements-dev.txt` | Installs app + test dependencies (run again after new packages are added) |
 | `flask db upgrade` | Creates/updates the database in `backend/instance/jams.db` |
-| `flask seed` | Adds roles, order statuses, categories, 13 jams and the admin account (safe to run repeatedly) |
+| `flask seed` | Adds roles, order statuses, categories, 20 jars and the admin account (safe to run repeatedly) |
 | `flask seed --demo` | Same, plus a demo client `client@example.com` / `Client-Demo-123` with no address and no orders |
 | `flask db migrate -m "describe change"` | Generates a migration after changing a model; review it, then run `flask db upgrade` |
 | `flask db downgrade` | Reverts the last migration |
@@ -185,4 +185,4 @@ The logo is a gingham-covered jar lid (`src/lib/components/SiteHeader.svelte`, f
 |---|---|---|
 | ![Home page on a phone](docs/screenshots/home-phone.jpg) | ![Catalogue on a tablet](docs/screenshots/catalogue-tablet.jpg) | ![Home page on a desktop](docs/screenshots/home-desktop.jpg) |
 
-Picture credits: the fruit watercolours in `public/images/plates/` come from the [USDA Pomological Watercolor Collection](https://commons.wikimedia.org/wiki/Category:USDA_Pomological_Watercolor_Collection) (public domain, via Wikimedia Commons). Painters, dates and source pages are listed in [`docs/image-credits.json`](docs/image-credits.json).
+Picture credits: the fruit watercolours in `public/images/plates/` come from the [USDA Pomological Watercolor Collection](https://commons.wikimedia.org/wiki/Category:USDA_Pomological_Watercolor_Collection) (public domain, via Wikimedia Commons). Painters, dates and source pages are listed in [`docs/image-credits.json`](docs/image-credits.json). Product photos in `public/images/jars/` are AI-generated from the prompts in [`docs/IMAGE_PROMPTS.md`](docs/IMAGE_PROMPTS.md) and are marked as illustrative on the product page; a photo uploaded by the admin takes their place.

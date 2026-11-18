@@ -17,9 +17,9 @@ def test_products_are_paginated(api):
     body = api.get("/api/products?per_page=5&page=3").get_json()
 
     assert body["total"] == len(PRODUCTS)
-    assert body["pages"] == 3
+    assert body["pages"] == 4
     assert body["page"] == 3
-    assert len(body["items"]) == len(PRODUCTS) - 10
+    assert len(body["items"]) == 5
 
 
 def test_products_filter_by_category(api):
