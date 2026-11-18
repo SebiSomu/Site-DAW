@@ -1,8 +1,21 @@
 from flask import Blueprint, jsonify, request
 
 from app.models import RoleName
-from app.schemas import AdminProductDetail, AdminProductRequest, AdminProductSummary, ImageUploadForm, parse_body, parse_form
+from app.schemas import (
+    AdminOrderDetail,
+    AdminOrderQuery,
+    AdminOrderSummary,
+    AdminProductDetail,
+    AdminProductRequest,
+    AdminProductSummary,
+    ImageUploadForm,
+    OrderStatusChangeRequest,
+    parse_body,
+    parse_form,
+    parse_query,
+)
 from app.security import role_required
+from app.services.admin_order_service import AdminOrderService
 from app.services.admin_product_service import AdminProductService
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/api/admin")
@@ -62,3 +75,35 @@ def make_main_image(image_id: int):
 @admin_only
 def delete_image(image_id: int):
     return product_json(AdminProductService().delete_image(image_id))
+
+
+def admin_order_json(service: AdminOrderService, order):
+    return jsonify(order=AdminOrderDetail.from_order(order, service.next_statuses(order)).model_dump(mode="json"))
+
+
+@admin_bp.get("/summary")
+@admin_only
+def summary():
+    return jsonify(AdminOrderService().summary().model_dump(mode="json"))
+
+
+@admin_bp.get("/orders")
+@admin_only
+def list_orders():
+    query = parse_query(AdminOrderQuery)
+    orders = AdminOrderService().list_orders(query.status)
+    return jsonify(orders=[AdminOrderSummary.from_order(order).model_dump(mode="json") for order in orders])
+
+
+@admin_bp.get("/orders/<int:order_id>")
+@admin_only
+def get_order(order_id: int):
+    service = AdminOrderService()
+    return admin_order_json(service, service.get(order_id))
+
+
+@admin_bp.patch("/orders/<int:order_id>/status")
+@admin_only
+def change_order_status(order_id: int):
+    service = AdminOrderService()
+    return admin_order_json(service, service.change_status(order_id, parse_body(OrderStatusChangeRequest).status))

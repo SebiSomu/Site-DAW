@@ -438,10 +438,12 @@ Rubric 9.04, 9.05, 10.03 (uploads) and the admin side of 2.04, 3.04 and 7.01. Ea
 - Logged: `product_created`, `product_updated` (with the changed fields), `product_deleted`, `product_image_added`, `product_image_main`, `product_image_removed`.
 - Tests: `backend/tests/test_admin_products.py`.
 
-**7.3 Admin orders and dashboard**
+**7.3 Admin orders and dashboard ✅**
 
-- `GET /api/admin/orders?status=`, `GET /api/admin/orders/<id>`, `PATCH /api/admin/orders/<id>/status`: paid → confirmed → shipped → delivered; cancelling refunds through the existing payment path. Only the webhook can mark an order paid.
-- `GET /api/admin/summary`: sales, orders by status, low stock, recent orders, all computed.
+- `GET /api/admin/orders?status=`, `GET /api/admin/orders/<id>`, `PATCH /api/admin/orders/<id>/status`: paid → confirmed → shipped → delivered, one step at a time, through a conditional `UPDATE ... WHERE status_id = <current>` so two admins cannot both move the same order; awaiting payment, paid and confirmed can be cancelled through the same payment path as the client's cancel (session closed, or refund and restock once). Only the webhook can mark an order paid. The detail lists the allowed next statuses, so the UI only offers valid buttons.
+- `GET /api/admin/summary`: takings (sum of `quantity × unit_price_cents` over paid, confirmed, shipped and delivered orders), orders by status, low stock, recent orders, message count, all computed.
+- Logged: `order_status_changed` (from, to, by=admin), `order_cancelled by=admin`.
+- Tests: `backend/tests/test_admin_orders.py`.
 
 **7.4 Contact form, messages and activity log**
 

@@ -23,6 +23,9 @@ class ApiClient:
     def put(self, url: str, json: dict | None = None):
         return self._in_own_context(self.client.put, url, json=json, headers={"X-CSRFToken": self.csrf_token})
 
+    def patch(self, url: str, json: dict | None = None):
+        return self._in_own_context(self.client.patch, url, json=json, headers={"X-CSRFToken": self.csrf_token})
+
     def post_form(self, url: str, data: dict):
         return self._in_own_context(
             self.client.post,

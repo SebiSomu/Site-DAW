@@ -83,7 +83,7 @@ class ProductRepository(SqlAlchemyRepository[Product]):
         return self.session.scalars(statement).all()
 
     def list_low_stock(self, threshold: int = 5) -> Sequence[Product]:
-        statement = select(Product).where(Product.stock <= threshold).order_by(Product.stock.asc())
+        statement = select(Product).where(Product.stock <= threshold).order_by(Product.stock.asc(), Product.name.asc())
         return self.session.scalars(statement).all()
 
     def list_for_admin(self) -> Sequence[Product]:

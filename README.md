@@ -186,6 +186,10 @@ Every route needs an admin session: a guest gets `401`, a client `403` (logged a
 | POST | `/api/admin/products/<id>/images` | Multipart `photo` + `alt_text`. Runs the upload checks (12 MB, `.jpg .jpeg .png .webp`, real format, nothing hidden after the picture), stores a clean WebP under a random name. `400`/`413` with a clear message, nothing stored on failure; at most 8 photos a jar |
 | POST | `/api/admin/images/<id>/main` | Makes this the photo shown on cards and first on the jar's page |
 | DELETE | `/api/admin/images/<id>` | Removes the photo and its file |
+| GET | `/api/admin/summary` | Dashboard: takings from paid orders, orders to send, orders awaiting payment, messages, orders by status, jars with 5 or fewer left, the 5 newest orders. All computed, nothing stored |
+| GET | `/api/admin/orders?status=` | Every client's orders, newest first, with the customer and payment status; optional filter by status code, `400` for an unknown one |
+| GET | `/api/admin/orders/<id>` | Order detail with the customer, address, payment and the statuses it can move to next |
+| PATCH | `/api/admin/orders/<id>/status` | Body `{"status"}`. Paid → Confirmed → Shipped → Delivered, one step at a time; Awaiting payment, Paid or Confirmed can be cancelled (an open payment page is closed, a paid order is refunded and its jars go back in stock). Only Stripe's webhook can mark an order Paid. `409` for any other move, `502` when the refund fails (the order is kept) |
 
 ## Design
 
