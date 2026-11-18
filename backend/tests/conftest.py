@@ -20,6 +20,18 @@ class ApiClient:
     def post(self, url: str, json: dict | None = None):
         return self._in_own_context(self.client.post, url, json=json, headers={"X-CSRFToken": self.csrf_token})
 
+    def put(self, url: str, json: dict | None = None):
+        return self._in_own_context(self.client.put, url, json=json, headers={"X-CSRFToken": self.csrf_token})
+
+    def post_form(self, url: str, data: dict):
+        return self._in_own_context(
+            self.client.post,
+            url,
+            data=data,
+            headers={"X-CSRFToken": self.csrf_token},
+            content_type="multipart/form-data",
+        )
+
     def delete(self, url: str):
         return self._in_own_context(self.client.delete, url, headers={"X-CSRFToken": self.csrf_token})
 

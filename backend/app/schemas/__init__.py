@@ -3,6 +3,7 @@ from typing import TypeVar
 from flask import request
 from pydantic import BaseModel
 
+from app.schemas.admin import AdminProductDetail, AdminProductRequest, AdminProductSummary, ImageUploadForm
 from app.schemas.auth import LoginRequest, RegisterRequest, UserResponse
 from app.schemas.catalog import CategoryResponse, ProductDetail, ProductPageResponse, ProductQuery, ReviewResponse
 from app.schemas.shop import (
@@ -28,13 +29,21 @@ def parse_query(schema: type[SchemaT]) -> SchemaT:
     return schema.model_validate(request.args.to_dict())
 
 
+def parse_form(schema: type[SchemaT]) -> SchemaT:
+    return schema.model_validate(request.form.to_dict())
+
+
 __all__ = [
+    "AdminProductDetail",
+    "AdminProductRequest",
+    "AdminProductSummary",
     "AddressRequest",
     "AddressResponse",
     "CartItemRequest",
     "CartRequest",
     "CartResponse",
     "CategoryResponse",
+    "ImageUploadForm",
     "LoginRequest",
     "OrderDetail",
     "OrderRequest",
@@ -47,5 +56,6 @@ __all__ = [
     "ReviewResponse",
     "UserResponse",
     "parse_body",
+    "parse_form",
     "parse_query",
 ]

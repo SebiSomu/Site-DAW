@@ -5,7 +5,7 @@ from typing import Sequence
 from sqlalchemy import Select, func, or_, select, update
 from sqlalchemy.orm import selectinload
 
-from app.models import Category, Product, Review
+from app.models import Category, Product, ProductImage, Review
 from app.repositories.base import SqlAlchemyRepository
 
 
@@ -86,6 +86,33 @@ class ProductRepository(SqlAlchemyRepository[Product]):
         statement = select(Product).where(Product.stock <= threshold).order_by(Product.stock.asc())
         return self.session.scalars(statement).all()
 
+    def list_for_admin(self) -> Sequence[Product]:
+        statement = (
+            select(Product)
+            .options(selectinload(Product.category), selectinload(Product.images))
+            .order_by(Product.name.asc(), Product.id.asc())
+        )
+        return self.session.scalars(statement).all()
+
+    def get_for_admin(self, product_id: int) -> Product | None:
+        statement = (
+            select(Product)
+            .where(Product.id == product_id)
+            .options(
+                selectinload(Product.category),
+                selectinload(Product.images),
+                selectinload(Product.ingredients),
+                selectinload(Product.order_items),
+            )
+        )
+        return self.session.scalars(statement).first()
+
+    def slug_taken_by_other(self, slug: str, product_id: int | None) -> bool:
+        statement = select(Product.id).where(Product.slug == slug)
+        if product_id is not None:
+            statement = statement.where(Product.id != product_id)
+        return self.session.scalar(statement.limit(1)) is not None
+
     def take_stock(self, product_id: int, quantity: int) -> bool:
         statement = (
             update(Product)
@@ -116,3 +143,7 @@ class ProductRepository(SqlAlchemyRepository[Product]):
     @staticmethod
     def _escape_like(value: str) -> str:
         return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+class ProductImageRepository(SqlAlchemyRepository[ProductImage]):
+    model = ProductImage

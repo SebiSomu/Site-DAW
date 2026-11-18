@@ -6,7 +6,7 @@ from app.repositories.lookup_repositories import (
     RoleRepository,
 )
 from app.repositories.order_repository import OrderRepository, PaymentRepository
-from app.repositories.product_repository import ProductPage, ProductRepository, ProductSort
+from app.repositories.product_repository import ProductImageRepository, ProductPage, ProductRepository, ProductSort
 from app.repositories.review_repository import ContactMessageRepository, ReviewRepository
 from app.repositories.user_repository import AddressRepository, UserRepository
 
@@ -19,6 +19,7 @@ __all__ = [
     "OrderRepository",
     "OrderStatusRepository",
     "PaymentRepository",
+    "ProductImageRepository",
     "ProductPage",
     "ProductRepository",
     "ProductSort",

@@ -431,10 +431,12 @@ Rubric 9.04, 9.05, 10.03 (uploads) and the admin side of 2.04, 3.04 and 7.01. Ea
 - Every rejection is logged with the check that failed and a `secure_filename` version of the name; a stored photo is logged as `image_stored`.
 - Tests: `backend/tests/test_uploads.py`.
 
-**7.2 Admin products API**
+**7.2 Admin products API ✅**
 
-- `GET/POST /api/admin/products`, `GET/PUT/DELETE /api/admin/products/<id>`; delete is refused for a jar that is in past orders (hide it instead).
-- `POST /api/admin/products/<id>/images` (multipart, through the pipeline), `POST /api/admin/images/<id>/main`, `DELETE /api/admin/images/<id>`.
+- `GET/POST /api/admin/products`, `GET/PUT/DELETE /api/admin/products/<id>`; delete is refused for a jar that is in past orders (hide it instead). The web address is made from the name (diacritics folded) when not given; name, description and ingredients are stored as plain text.
+- `POST /api/admin/products/<id>/images` (multipart, through the pipeline), `POST /api/admin/images/<id>/main`, `DELETE /api/admin/images/<id>`. The jar and the alt text are checked before the file is stored, and the file is removed again if saving the row fails, so no orphan files; at most 8 photos a jar.
+- Logged: `product_created`, `product_updated` (with the changed fields), `product_deleted`, `product_image_added`, `product_image_main`, `product_image_removed`.
+- Tests: `backend/tests/test_admin_products.py`.
 
 **7.3 Admin orders and dashboard**
 

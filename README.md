@@ -175,6 +175,18 @@ Every `POST` and `DELETE` needs the CSRF token, except the payment webhook, whic
 
 Frontend pages: `/cart`, `/checkout`, `/checkout/success?order=<id>` and `/checkout/cancelled?order=<id>` (where Stripe sends the client back), `/login`, `/register`, `/account`, `/account/orders`, `/account/orders/<id>` (with "Pay now" while an order is awaiting payment). The cart lives in the browser as product ids and quantities only. Placing and paying are two steps, so a failed payment never loses the order. A new order stays at `Awaiting payment` and takes no jars out of stock until Stripe's webhook confirms the payment; the success page never marks an order paid.
 
+### Admin API
+
+Every route needs an admin session: a guest gets `401`, a client `403` (logged as `access_denied`). Every change is logged.
+
+| Method | Endpoint | Result |
+|---|---|---|
+| GET / POST | `/api/admin/products` | All jars, hidden ones included, A to Z / add a jar: `{name, slug?, category_slug, description, price_cents, weight_grams, stock, ingredients, is_active}`. The web address is made from the name when `slug` is left out; text is stored as plain text; `409` when the address is taken |
+| GET / PUT / DELETE | `/api/admin/products/<id>` | One jar / replace its details / delete it with its photos. `409` for a jar that is in past orders: hide it with `is_active: false` instead |
+| POST | `/api/admin/products/<id>/images` | Multipart `photo` + `alt_text`. Runs the upload checks (12 MB, `.jpg .jpeg .png .webp`, real format, nothing hidden after the picture), stores a clean WebP under a random name. `400`/`413` with a clear message, nothing stored on failure; at most 8 photos a jar |
+| POST | `/api/admin/images/<id>/main` | Makes this the photo shown on cards and first on the jar's page |
+| DELETE | `/api/admin/images/<id>` | Removes the photo and its file |
+
 ## Design
 
 Pantry label plus recipe book: gingham bands, kraft tags, index cards held on with tape and 1900s fruit watercolours as the pages of a recipe book. Styles live in five files in `src/styles/` (tokens, base, layout, components, animations); fonts are self-hosted with `@fontsource-variable` (Caveat, Fraunces, Nunito). Every animation is switched off when the device asks for reduced motion.
