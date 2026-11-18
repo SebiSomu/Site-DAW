@@ -4,7 +4,7 @@ from app.errors import CheckoutAlreadyPaidError, PaymentError
 from app.models import OrderStatusCode, PaymentProvider, PaymentStatus
 from app.repositories import OrderRepository, OrderStatusRepository, PaymentRepository, ProductRepository
 from app.seed import DEMO_CLIENT_EMAIL, DEMO_CLIENT_PASSWORD
-from app.services.payments import CheckoutStatus, get_payment_gateway
+from app.services.payments import FAKE_SIGNATURE, CheckoutStatus, PaymentEventKind, get_payment_gateway
 
 ADDRESS = {"street": "12 Republicii Street", "city": "Brașov", "county": "Brașov", "postal_code": "500030"}
 OTHER_CLIENT = {"email": "ion@example.com", "password": "plum-lover-2026", "first_name": "Ion", "last_name": "Popa"}
@@ -22,6 +22,24 @@ def pay(api, order_id: int):
 def payment_of(order_id: int, session):
     session.expire_all()
     return OrderRepository().get(order_id).payment
+
+
+def order_status(order_id: int, session) -> str:
+    session.expire_all()
+    return OrderRepository().get(order_id).status.code
+
+
+def stock_levels(session) -> dict[str, int]:
+    session.expire_all()
+    return {slug: jar(slug).stock for slug in ORDERED}
+
+
+def send_webhook(app, payload: bytes, signature: str | None = FAKE_SIGNATURE):
+    headers = {} if signature is None else {"Stripe-Signature": signature}
+    with app.app_context():
+        return app.test_client().post(
+            "/api/payments/webhook", data=payload, headers=headers, content_type="application/json"
+        )
 
 
 def set_status(order_id: int, code: OrderStatusCode, session) -> None:
@@ -43,6 +61,12 @@ def client_api(api):
 @pytest.fixture()
 def order_total():
     return sum(jar(slug).price_cents * quantity for slug, quantity in ORDERED.items())
+
+
+@pytest.fixture()
+def reference(client_api, order_id, session):
+    assert pay(client_api, order_id).status_code == 200
+    return payment_of(order_id, session).provider_reference
 
 
 @pytest.fixture()
@@ -217,3 +241,139 @@ def test_gateway_outage_on_retry_keeps_the_open_session(client_api, order_id, fa
     payment = payment_of(order_id, session)
     assert (payment.provider_reference, payment.status) == (reference, PaymentStatus.PENDING.value)
     assert fake.checkouts[reference].status is CheckoutStatus.OPEN
+
+
+def test_paid_webhook_marks_the_order_paid_and_takes_the_stock(app, order_id, reference, fake, session, activity_log):
+    before = stock_levels(session)
+
+    response = send_webhook(app, fake.complete(reference))
+
+    assert response.status_code == 200
+    assert order_status(order_id, session) == OrderStatusCode.PAID.value
+    payment = payment_of(order_id, session)
+    assert payment.status == PaymentStatus.SUCCEEDED.value
+    assert payment.paid_at is not None
+    assert stock_levels(session) == {slug: before[slug] - quantity for slug, quantity in ORDERED.items()}
+    assert f"payment_succeeded | order={order_id}" in activity_log()
+
+
+def test_paid_order_makes_its_jars_reviewable(app, client_api, reference, fake):
+    send_webhook(app, fake.complete(reference))
+
+    eligibility = client_api.get(f"/api/products/{jar('apricot-jam').id}/reviews/eligibility")
+
+    assert eligibility.get_json() == {"can_review": True}
+
+
+@pytest.mark.parametrize("signature", ["wrong", None])
+def test_webhook_with_a_bad_signature_is_rejected_and_logged(app, order_id, reference, fake, session, activity_log, signature):
+    before = stock_levels(session)
+
+    response = send_webhook(app, fake.complete(reference), signature)
+
+    assert response.status_code == 400
+    assert response.get_json() == {"error": "This payment notification could not be verified."}
+    assert order_status(order_id, session) == OrderStatusCode.PENDING_PAYMENT.value
+    assert stock_levels(session) == before
+    assert "webhook_rejected" in activity_log()
+
+
+def test_resent_event_takes_the_stock_only_once(app, order_id, reference, fake, session):
+    before = stock_levels(session)
+    payload = fake.complete(reference)
+
+    assert send_webhook(app, payload).status_code == 200
+    assert send_webhook(app, payload).status_code == 200
+
+    assert stock_levels(session) == {slug: before[slug] - quantity for slug, quantity in ORDERED.items()}
+    assert fake.refunded == []
+
+
+def test_oversold_jar_is_refunded_and_the_order_cancelled(app, order_id, reference, fake, session, activity_log):
+    jar("apricot-jam").stock = 1
+    session.commit()
+    before = stock_levels(session)
+    payload = fake.complete(reference)
+
+    assert send_webhook(app, payload).status_code == 200
+    assert send_webhook(app, payload).status_code == 200
+
+    assert order_status(order_id, session) == OrderStatusCode.CANCELLED.value
+    assert payment_of(order_id, session).status == PaymentStatus.REFUNDED.value
+    assert stock_levels(session) == before
+    assert fake.refunded == [reference]
+    assert f"payment_refunded | order={order_id} reason=a jar sold out" in activity_log()
+
+
+def test_amount_mismatch_is_refunded_and_never_marked_paid(app, order_id, order_total, reference, fake, session, activity_log):
+    before = stock_levels(session)
+    fake.complete(reference)
+    payload = fake.event_payload(PaymentEventKind.COMPLETED, reference, order_total - 100, is_paid=True)
+
+    assert send_webhook(app, payload).status_code == 200
+
+    assert order_status(order_id, session) == OrderStatusCode.CANCELLED.value
+    assert payment_of(order_id, session).status == PaymentStatus.REFUNDED.value
+    assert stock_levels(session) == before
+    assert "amount mismatch" in activity_log()
+
+
+def test_payment_for_a_cancelled_order_is_refunded(app, order_id, reference, fake, session):
+    before = stock_levels(session)
+    set_status(order_id, OrderStatusCode.CANCELLED, session)
+
+    assert send_webhook(app, fake.complete(reference)).status_code == 200
+
+    assert payment_of(order_id, session).status == PaymentStatus.REFUNDED.value
+    assert order_status(order_id, session) == OrderStatusCode.CANCELLED.value
+    assert stock_levels(session) == before
+    assert fake.refunded == [reference]
+
+
+def test_unknown_session_is_acknowledged_and_logged(app, order_id, reference, fake, session, activity_log):
+    payload = fake.event_payload(PaymentEventKind.COMPLETED, "cs_unknown", 100, is_paid=True)
+
+    assert send_webhook(app, payload).status_code == 200
+
+    assert order_status(order_id, session) == OrderStatusCode.PENDING_PAYMENT.value
+    assert "webhook_unknown_session | reference=cs_unknown" in activity_log()
+
+
+def test_completed_but_unpaid_session_changes_nothing(app, order_id, order_total, reference, fake, session):
+    payload = fake.event_payload(PaymentEventKind.COMPLETED, reference, order_total, is_paid=False)
+
+    assert send_webhook(app, payload).status_code == 200
+
+    assert order_status(order_id, session) == OrderStatusCode.PENDING_PAYMENT.value
+    assert payment_of(order_id, session).status == PaymentStatus.PENDING.value
+
+
+def test_expired_session_fails_the_payment_and_keeps_the_order_open(app, client_api, order_id, reference, fake, session, activity_log):
+    assert send_webhook(app, fake.expire_event(reference)).status_code == 200
+
+    assert payment_of(order_id, session).status == PaymentStatus.FAILED.value
+    assert order_status(order_id, session) == OrderStatusCode.PENDING_PAYMENT.value
+    assert f"payment_failed | order={order_id}" in activity_log()
+    assert pay(client_api, order_id).status_code == 200
+
+
+def test_other_events_are_acknowledged_and_ignored(app, order_id, reference, fake, session):
+    assert send_webhook(app, fake.event_payload(PaymentEventKind.IGNORED)).status_code == 200
+
+    assert order_status(order_id, session) == OrderStatusCode.PENDING_PAYMENT.value
+
+
+def test_failed_refund_returns_an_error_so_the_event_is_retried(app, order_id, reference, fake, session):
+    jar("apricot-jam").stock = 1
+    session.commit()
+    payload = fake.complete(reference)
+    fake.is_down = True
+
+    assert send_webhook(app, payload).status_code == 502
+    assert order_status(order_id, session) == OrderStatusCode.PENDING_PAYMENT.value
+    assert payment_of(order_id, session).status == PaymentStatus.PENDING.value
+
+    fake.is_down = False
+    assert send_webhook(app, payload).status_code == 200
+    assert order_status(order_id, session) == OrderStatusCode.CANCELLED.value
+    assert fake.refunded == [reference]

@@ -385,7 +385,7 @@ Rubric 8.02: a working online payment system. Do them in order; each ends with t
 - Log `payment_started`.
 - Tests: amount comes from the order, another client's order is 404, a paid or cancelled order is 409, out of stock is 409, retry replaces the reference, a gateway failure leaves the order intact.
 
-**6.3 Webhook**
+**6.3 Webhook ✅**
 
 - `POST /api/payments/webhook`: the only CSRF-exempt route, verified by Stripe signature (bad signature is 400 and logged).
 - `checkout.session.completed` with `payment_status=paid`, after checking the amount matches: mark the payment `succeeded` with `paid_at`, move the order to `Paid`, and take the stock with a conditional update (`stock = stock - n WHERE stock >= n`), all in one transaction.

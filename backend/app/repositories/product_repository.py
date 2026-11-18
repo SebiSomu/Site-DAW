@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Sequence
 
-from sqlalchemy import Select, func, or_, select
+from sqlalchemy import Select, func, or_, select, update
 from sqlalchemy.orm import selectinload
 
 from app.models import Category, Product, Review
@@ -85,6 +85,14 @@ class ProductRepository(SqlAlchemyRepository[Product]):
     def list_low_stock(self, threshold: int = 5) -> Sequence[Product]:
         statement = select(Product).where(Product.stock <= threshold).order_by(Product.stock.asc())
         return self.session.scalars(statement).all()
+
+    def take_stock(self, product_id: int, quantity: int) -> bool:
+        statement = (
+            update(Product)
+            .where(Product.id == product_id, Product.stock >= quantity)
+            .values(stock=Product.stock - quantity)
+        )
+        return self.session.execute(statement).rowcount == 1
 
     def slug_exists(self, slug: str) -> bool:
         return self.find_one_by(slug=slug) is not None
