@@ -13,7 +13,7 @@ Slug = Annotated[str, StringConstraints(strip_whitespace=True, max_length=80)]
 class ProductQuery(BaseModel):
     q: SearchText | None = None
     category: Slug | None = None
-    sort: ProductSort = ProductSort.NEWEST
+    sort: ProductSort = ProductSort.NAME
     page: int = Field(default=1, ge=1, le=1000)
     per_page: int = Field(default=12, ge=1, le=48)
 

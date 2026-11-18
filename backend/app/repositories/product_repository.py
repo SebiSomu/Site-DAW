@@ -58,7 +58,7 @@ class ProductRepository(SqlAlchemyRepository[Product]):
         self,
         query: str | None = None,
         category_slug: str | None = None,
-        sort: ProductSort = ProductSort.NEWEST,
+        sort: ProductSort = ProductSort.NAME,
         page: int = 1,
         per_page: int = 12,
         include_inactive: bool = False,

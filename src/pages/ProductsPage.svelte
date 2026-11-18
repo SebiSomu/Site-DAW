@@ -12,11 +12,13 @@
     page?: number
   }
 
+  const DEFAULT_SORT: ProductSort = 'name'
+
   const SORT_OPTIONS: { value: ProductSort; label: string }[] = [
+    { value: 'name', label: 'Name: A to Z' },
     { value: 'newest', label: 'Newest first' },
     { value: 'price-asc', label: 'Price: low to high' },
     { value: 'price-desc', label: 'Price: high to low' },
-    { value: 'name', label: 'Name: A to Z' },
   ]
 
   let categories = $state<Category[]>([])
@@ -26,7 +28,7 @@
   const params = $derived(router.url.searchParams)
   const q = $derived(params.get('q') ?? '')
   const category = $derived(params.get('category') ?? '')
-  const sort = $derived(SORT_OPTIONS.find((option) => option.value === params.get('sort'))?.value ?? 'newest')
+  const sort = $derived(SORT_OPTIONS.find((option) => option.value === params.get('sort'))?.value ?? DEFAULT_SORT)
   const page = $derived(Math.max(1, Number.parseInt(params.get('page') ?? '', 10) || 1))
   const activeCategory = $derived(categories.find((item) => item.slug === category))
 
@@ -64,7 +66,7 @@
     const query = new URLSearchParams()
     if (filters.q) query.set('q', filters.q)
     if (filters.category) query.set('category', filters.category)
-    if (filters.sort && filters.sort !== 'newest') query.set('sort', filters.sort)
+    if (filters.sort && filters.sort !== DEFAULT_SORT) query.set('sort', filters.sort)
     if (filters.page && filters.page > 1) query.set('page', String(filters.page))
     const search = query.toString()
     return search ? `/products?${search}` : '/products'

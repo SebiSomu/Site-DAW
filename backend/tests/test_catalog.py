@@ -107,3 +107,9 @@ def test_sitemap_lists_categories_and_products(api):
     assert "<loc>http://localhost/about</loc>" in body
     assert "<loc>http://localhost/products?category=jams</loc>" in body
     assert body.count("<loc>http://localhost/products/") == len(PRODUCTS)
+
+
+def test_products_are_listed_a_to_z_by_default(api):
+    names = [item["name"] for item in api.get("/api/products?per_page=50").get_json()["items"]]
+
+    assert names == sorted(names)
