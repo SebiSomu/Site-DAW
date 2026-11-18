@@ -173,7 +173,7 @@ Every `POST` and `DELETE` needs the CSRF token, except the payment webhook, whic
 | GET | `/api/products/<id>/reviews/eligibility` | logged in | `{"can_review": true or false}` |
 | POST | `/api/products/<id>/reviews` | bought it | Body `{rating, comment}`. `403` without a purchase, `409` for a second review |
 
-Frontend pages: `/cart`, `/checkout`, `/login`, `/register`, `/account`, `/account/orders`, `/account/orders/<id>`. The cart lives in the browser as product ids and quantities only. Placing and paying are two steps, so a failed payment never loses the order. A new order stays at `Awaiting payment` and takes no jars out of stock until Stripe's webhook confirms the payment; the success page never marks an order paid.
+Frontend pages: `/cart`, `/checkout`, `/checkout/success?order=<id>` and `/checkout/cancelled?order=<id>` (where Stripe sends the client back), `/login`, `/register`, `/account`, `/account/orders`, `/account/orders/<id>` (with "Pay now" while an order is awaiting payment). The cart lives in the browser as product ids and quantities only. Placing and paying are two steps, so a failed payment never loses the order. A new order stays at `Awaiting payment` and takes no jars out of stock until Stripe's webhook confirms the payment; the success page never marks an order paid.
 
 ## Design
 

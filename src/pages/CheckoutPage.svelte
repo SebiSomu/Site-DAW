@@ -5,6 +5,7 @@
   import AuthGate from '../lib/components/AuthGate.svelte'
   import Seo from '../lib/components/Seo.svelte'
   import { formatPrice } from '../lib/format'
+  import { startPayment } from '../lib/payment'
   import { router } from '../lib/router/router.svelte'
   import { auth } from '../lib/stores/auth.svelte'
   import { cart } from '../lib/stores/cart.svelte'
@@ -15,6 +16,7 @@
   let notes = $state('')
   let error = $state('')
   let busy = $state(false)
+  let leaving = $state(false)
 
   const signedIn = $derived(!!auth.user)
   const hasIssue = $derived(!!summary && (summary.missing_product_ids.length > 0 || summary.lines.some((line) => !line.is_available)))
@@ -47,14 +49,20 @@
     event.preventDefault()
     busy = true
     error = ''
+    let order: OrderDetail
     try {
-      const body = await api.post<{ order: OrderDetail }>('/orders', { address_id: addressId, items: cart.items, notes })
-      router.navigate(`/account/orders/${body.order.id}?placed=1`)
-      cart.clear()
+      order = (await api.post<{ order: OrderDetail }>('/orders', { address_id: addressId, items: cart.items, notes })).order
     } catch (caught) {
       error = errorMessage(caught)
-    } finally {
       busy = false
+      return
+    }
+    leaving = true
+    cart.clear()
+    try {
+      await startPayment(order.id)
+    } catch {
+      router.navigate(`/account/orders/${order.id}?payment=unavailable`)
     }
   }
 </script>
@@ -65,7 +73,9 @@
   <section class="page-stack">
     <h1 class="page-title">Checkout</h1>
 
-    {#if !cart.items.length}
+    {#if leaving}
+      <p class="status" aria-live="polite">Your order is saved. Taking you to the secure payment page…</p>
+    {:else if !cart.items.length}
       <p class="status">Your cart is empty, so there is nothing to check out yet.</p>
       <p><a class="button" href="/products">Browse all jars</a></p>
     {:else if hasIssue}
@@ -119,7 +129,10 @@
           {#if error}
             <p class="form-error" role="alert">{error}</p>
           {/if}
-          <p><button class="button" type="submit" disabled={busy || !summary || !addressId}>Place my order</button></p>
+          <p class="field-hint">
+            You pay by card on Stripe's secure page. Your card details never pass through this site.
+          </p>
+          <p><button class="button" type="submit" disabled={busy || !summary || !addressId}>Place order and pay</button></p>
         </form>
       </div>
     {/if}

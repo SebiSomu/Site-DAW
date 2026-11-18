@@ -6,7 +6,9 @@
   import AboutPage from './pages/AboutPage.svelte'
   import AccountPage from './pages/AccountPage.svelte'
   import CartPage from './pages/CartPage.svelte'
+  import CheckoutCancelledPage from './pages/CheckoutCancelledPage.svelte'
   import CheckoutPage from './pages/CheckoutPage.svelte'
+  import CheckoutSuccessPage from './pages/CheckoutSuccessPage.svelte'
   import HomePage from './pages/HomePage.svelte'
   import LoginPage from './pages/LoginPage.svelte'
   import NotFoundPage from './pages/NotFoundPage.svelte'
@@ -41,6 +43,10 @@
     <CartPage />
   {:else if path === '/checkout'}
     <CheckoutPage />
+  {:else if path === '/checkout/success'}
+    <CheckoutSuccessPage />
+  {:else if path === '/checkout/cancelled'}
+    <CheckoutCancelledPage />
   {:else if path === '/login'}
     <LoginPage />
   {:else if path === '/register'}

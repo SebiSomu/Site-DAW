@@ -402,7 +402,7 @@ Rubric 8.02: a working online payment system. Do them in order; each ends with t
 - `Paid` or `Confirmed`: refund through the gateway, mark the payment `refunded`, restore the stock, then cancel. If the refund fails, the order stays as it was and the client sees the error.
 - Tests: stock restored exactly once, refund failure changes nothing, a shipped order still cannot be cancelled.
 
-**6.5 Frontend**
+**6.5 Frontend ✅**
 
 - Checkout's button becomes "Place order and pay": place the order, clear the cart, ask for `checkout_url`, go to Stripe. If Stripe is unavailable, the client lands on the saved order and can try again.
 - `/checkout/success`: re-reads the order for a short while, because the webhook can arrive after the browser. It shows "Paid" or "We are still confirming your payment".

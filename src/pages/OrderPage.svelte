@@ -4,10 +4,9 @@
   import AuthGate from '../lib/components/AuthGate.svelte'
   import Seo from '../lib/components/Seo.svelte'
   import { formatDate, formatPrice } from '../lib/format'
+  import { AWAITING_PAYMENT, isRefundedOnCancel, startPayment } from '../lib/payment'
   import { router } from '../lib/router/router.svelte'
   import { auth } from '../lib/stores/auth.svelte'
-
-  const AWAITING_PAYMENT = 'pending_payment'
 
   let { id }: { id: string } = $props()
 
@@ -16,9 +15,12 @@
   let missing = $state(false)
   let cancelError = $state('')
   let busy = $state(false)
+  let payError = $state('')
+  let paying = $state(false)
 
   const signedIn = $derived(!!auth.user)
-  const justPlaced = $derived(router.url.searchParams.has('placed'))
+  const paymentUnavailable = $derived(router.url.searchParams.get('payment') === 'unavailable')
+  const refundOnCancel = $derived(!!order && isRefundedOnCancel(order.status))
 
   $effect(() => {
     if (!signedIn) return
@@ -31,8 +33,22 @@
       })
   })
 
+  async function payNow(): Promise<void> {
+    paying = true
+    payError = ''
+    try {
+      await startPayment(Number(id))
+    } catch (caught) {
+      payError = errorMessage(caught)
+      paying = false
+    }
+  }
+
   async function cancelOrder(): Promise<void> {
-    if (!window.confirm(`Cancel order ${id}?`)) return
+    const question = refundOnCancel
+      ? `Cancel order ${id}? The full amount will be refunded to your card.`
+      : `Cancel order ${id}?`
+    if (!window.confirm(question)) return
     busy = true
     cancelError = ''
     try {
@@ -51,16 +67,30 @@
   <section class="page-stack">
     {#if order}
       <h1 class="page-title">Order {order.id}</h1>
-      {#if justPlaced}
-        <p class="form-note" role="status">Thank you! Mum has your order.</p>
-      {/if}
-      {#if order.status.code === AWAITING_PAYMENT}
-        <p class="form-note">Paying by card online is not switched on yet. This order is saved and waiting for payment.</p>
-      {/if}
       <p>
         <span class="order-status" data-status={order.status.code}>{order.status.name}</span>
         placed on <time datetime={order.created_at}>{formatDate(order.created_at)}</time>
       </p>
+
+      {#if order.status.code === AWAITING_PAYMENT}
+        <div class="paper sheet">
+          {#if paymentUnavailable && !payError}
+            <p class="form-error" role="alert">
+              Your order is saved, but the payment page did not open. Please try again in a moment.
+            </p>
+          {/if}
+          <p>This order is waiting for payment. Nothing has been charged yet, and the jars are set aside once it is paid.</p>
+          {#if payError}
+            <p class="form-error" role="alert">{payError}</p>
+          {/if}
+          <p>
+            <button class="button" type="button" disabled={paying} onclick={payNow}>
+              {paying ? 'Opening the payment page…' : `Pay now, ${formatPrice(order.total_cents)}`}
+            </button>
+          </p>
+          <p class="field-hint">You pay by card on Stripe's secure page. Your card details never pass through this site.</p>
+        </div>
+      {/if}
 
       <div class="paper table-scroll">
         <table class="data-table">
@@ -104,6 +134,9 @@
         <p class="form-error" role="alert">{cancelError}</p>
       {/if}
       {#if order.is_cancellable}
+        {#if refundOnCancel}
+          <p class="field-hint">Changed your mind? Cancelling refunds the full amount to your card.</p>
+        {/if}
         <p><button class="button button-quiet" type="button" disabled={busy} onclick={cancelOrder}>Cancel this order</button></p>
       {/if}
     {:else if error}
