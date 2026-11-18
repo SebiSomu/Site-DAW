@@ -168,10 +168,11 @@ Every `POST` and `DELETE` needs the CSRF token. Prices always come from the serv
 | GET / POST | `/api/orders` | logged in | The client's orders / place one: `{address_id, items, notes}`. `409` when a jar is out of stock |
 | GET | `/api/orders/<id>` | owner | Order detail, `404` for anyone else |
 | POST | `/api/orders/<id>/cancel` | owner | `409` once shipped or already cancelled |
+| POST | `/api/orders/<id>/pay` | owner | Opens a card payment for an order `Awaiting payment` and returns `{"checkout_url"}`. The amount comes from the order. A retry replaces the previous session. `409` when the order is not awaiting payment or a jar sold out, `502` when the payment service is unreachable (the order is kept) |
 | GET | `/api/products/<id>/reviews/eligibility` | logged in | `{"can_review": true or false}` |
 | POST | `/api/products/<id>/reviews` | bought it | Body `{rating, comment}`. `403` without a purchase, `409` for a second review |
 
-Frontend pages: `/cart`, `/checkout`, `/login`, `/register`, `/account`, `/account/orders`, `/account/orders/<id>`. The cart lives in the browser as product ids and quantities only. Until card payment arrives in phase 6, a new order stays at `Awaiting payment` and does not take jars out of stock.
+Frontend pages: `/cart`, `/checkout`, `/login`, `/register`, `/account`, `/account/orders`, `/account/orders/<id>`. The cart lives in the browser as product ids and quantities only. Placing and paying are two steps, so a failed payment never loses the order. A new order stays at `Awaiting payment` and does not take jars out of stock until the payment webhook (phase 6.3) confirms it.
 
 ## Design
 

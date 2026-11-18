@@ -4,7 +4,7 @@ from functools import wraps
 import stripe
 
 from app.errors import CheckoutAlreadyPaidError, PaymentError, WebhookError
-from app.models import Order
+from app.models import Order, PaymentProvider
 from app.services.activity_logger import activity_logger
 from app.services.payments.gateway import (
     CheckoutSession,
@@ -36,6 +36,8 @@ def reports_gateway_errors(method):
 
 
 class StripeGateway(PaymentGateway):
+    provider = PaymentProvider.STRIPE
+
     def __init__(
         self,
         secret_key: str,

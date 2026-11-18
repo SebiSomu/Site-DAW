@@ -43,3 +43,4 @@ class PaymentStatus(str, Enum):
 
 class PaymentProvider(str, Enum):
     STRIPE = "stripe"
+    FAKE = "fake"

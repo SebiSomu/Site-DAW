@@ -17,6 +17,7 @@ from app.services.activity_logger import activity_logger
 from app.services.address_service import AddressService
 from app.services.cart_service import CartService
 from app.services.order_service import OrderService
+from app.services.payment_service import PaymentService
 from app.services.review_service import ReviewService
 
 shop_bp = Blueprint("shop", __name__, url_prefix="/api")
@@ -78,6 +79,13 @@ def get_order(order_id: int):
 @login_required
 def cancel_order(order_id: int):
     return order_json(OrderService().cancel(order_id, current_user.id))
+
+
+@shop_bp.post("/orders/<int:order_id>/pay")
+@login_required
+def pay_order(order_id: int):
+    checkout = PaymentService().start(order_id, current_user.id)
+    return jsonify(checkout_url=checkout.url)
 
 
 @shop_bp.get("/products/<int:product_id>/reviews/eligibility")

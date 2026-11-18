@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from uuid import uuid4
 
 from app.errors import CheckoutAlreadyPaidError, PaymentError, WebhookError
-from app.models import Order
+from app.models import Order, PaymentProvider
 from app.services.payments.gateway import (
     CheckoutSession,
     CheckoutStatus,
@@ -23,6 +23,8 @@ class FakeCheckout:
 
 
 class FakeGateway(PaymentGateway):
+    provider = PaymentProvider.FAKE
+
     def __init__(self, site_url: str) -> None:
         self.site_url = site_url.rstrip("/")
         self.checkouts: dict[str, FakeCheckout] = {}

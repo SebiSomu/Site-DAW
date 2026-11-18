@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 
-from app.models import Order
+from app.models import Order, PaymentProvider
 
 
 class CheckoutStatus(str, Enum):
@@ -32,6 +32,8 @@ class PaymentEvent:
 
 
 class PaymentGateway(ABC):
+    provider: PaymentProvider
+
     @abstractmethod
     def create_checkout(self, order: Order) -> CheckoutSession: ...
 

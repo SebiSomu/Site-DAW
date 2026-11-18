@@ -377,7 +377,7 @@ Rubric 8.02: a working online payment system. Do them in order; each ends with t
 - Tests: the fake's behaviour, gateway selection by config, a Stripe error mapped to a clean response.
 - Rubric: 3.02 (second interface), 4.01, 4.02.
 
-**6.2 Starting a payment**
+**6.2 Starting a payment ✅**
 
 - `PaymentService.start(order_id, user_id)`: own orders only and only `Awaiting payment`; re-check stock and active products; create the session in `ron` with one line per order item, using `unit_price_cents` from the order, never from the request.
 - Create or update the `payments` row as `pending`. A retry expires the previous session first, so one order never has two payable sessions.
