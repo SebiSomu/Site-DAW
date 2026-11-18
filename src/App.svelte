@@ -3,6 +3,7 @@
   import SiteHeader from './lib/components/SiteHeader.svelte'
   import { router } from './lib/router/router.svelte'
   import { auth } from './lib/stores/auth.svelte'
+  import AboutPage from './pages/AboutPage.svelte'
   import AccountPage from './pages/AccountPage.svelte'
   import CartPage from './pages/CartPage.svelte'
   import CheckoutPage from './pages/CheckoutPage.svelte'
@@ -28,6 +29,8 @@
 <main id="main" class="site-main page-width" tabindex="-1">
   {#if path === '/'}
     <HomePage />
+  {:else if path === '/about'}
+    <AboutPage />
   {:else if path === '/products'}
     <ProductsPage />
   {:else if productSlug}

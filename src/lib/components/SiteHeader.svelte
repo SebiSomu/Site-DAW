@@ -1,17 +1,13 @@
 <script lang="ts">
+  import { currentState, mainNavLinks } from '../navigation'
   import { router } from '../router/router.svelte'
-  import { SHELVES, shelfHref } from '../shelves'
   import { auth } from '../stores/auth.svelte'
   import { cart } from '../stores/cart.svelte'
 
   let open = $state(false)
 
   const here = $derived(router.url.pathname + router.url.search)
-  const links = $derived([
-    { href: '/products', label: 'All jars' },
-    ...SHELVES.map((shelf) => ({ href: shelfHref(shelf.slug), label: shelf.name })),
-    auth.user ? { href: '/account', label: 'My account' } : { href: '/login', label: 'Log in' },
-  ])
+  const links = $derived(mainNavLinks(auth.user !== null))
 
   $effect(() => {
     void here
@@ -68,7 +64,7 @@
     <nav id="site-nav" class="site-nav" aria-label="Main" data-open={open}>
       <ul>
         {#each links as link (link.href)}
-          <li><a href={link.href} aria-current={here === link.href ? 'page' : undefined}>{link.label}</a></li>
+          <li><a href={link.href} aria-current={currentState(link.href, router.url.pathname)}>{link.label}</a></li>
         {/each}
       </ul>
     </nav>

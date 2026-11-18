@@ -154,7 +154,7 @@ All public, read-only (`GET`, no CSRF token needed). Prices are integer cents (`
 
 `sort` is `newest` (default), `price-asc`, `price-desc` or `name`; `per_page` is 1–48 (default 12). Invalid values return `400`. Inactive products are hidden.
 
-Frontend pages: `/` (home), `/products` (catalogue with category links, search, sort, pagination, all kept in the URL), `/products/<slug>` (product page), anything else shows the 404 page. Every page sets its title, description, canonical URL and Open Graph tags through `src/lib/components/Seo.svelte`.
+Frontend pages: `/` (home), `/about` (the family story and Mum's year in the kitchen), `/products` (catalogue with category links, search, sort, pagination, all kept in the URL), `/products/<slug>` (product page), anything else shows the 404 page. Every page sets its title, description, canonical URL and Open Graph tags through `src/lib/components/Seo.svelte`.
 
 ## Shop API
 

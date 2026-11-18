@@ -11,7 +11,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started
 | 2.01 | Database in 3NF | ✅ | [`docs/DATABASE.md`](DATABASE.md), ER diagram, `backend/tests/test_models.py` |
 | 2.02 | ≥4 use cases | ✅ | Working end to end in the browser: UC1 browse catalogue (`/products`, `/products/<slug>`), UC2 cart (`/cart`, server-priced through `POST /api/cart/validate`), UC3 register, log in and log out (`/register`, `/login`, `/account`), UC5 order history, detail and cancel (`/account/orders`), UC6 reviews of bought jars (product page). UC4 checkout places the order but card payment arrives in phase 6. Remaining: UC7 contact, UC8 admin. Tests: `backend/tests/test_shop.py` |
 | 2.03 | MVC / Repository | ✅ | Models (`backend/app/models/`), Views (Svelte pages in `src/pages/`), Controllers (`backend/app/controllers/`), plus Repository (`backend/app/repositories/`) and Service (`backend/app/services/`) layers. Example flow: `ProductsPage.svelte` → `GET /api/products` → `catalog_controller` → `CatalogService` → `ProductRepository` → `Product` |
-| 2.04 | Images, text, tables, links | ✅ | Watercolour plates and jar illustrations, descriptions, tables ("About this jar", cart, order history, order detail), navigation, breadcrumb, footer and category links. Real product photos and legal pages are still to come |
+| 2.04 | Images, text, tables, links | ✅ | Watercolour plates and jar illustrations, descriptions, tables ("About this jar", cart, order history, order detail), navigation, breadcrumb, footer and category links; the About page (`src/pages/AboutPage.svelte`) adds the family story, a seasonal calendar linking to every jar, the kitchen rules, a who-does-what section and an FAQ built on `<details>`. Real product photos and legal pages are still to come |
 
 ## Grade 3 — Object-oriented programming and access control
 
@@ -67,7 +67,7 @@ Counted with: `grep -rE "^class " backend/app | wc -l`
 
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
-| 6.01 | ≥5 unit tests | ✅ | 180 pytest tests in `backend/tests/` and 30 Vitest tests in `src/` (`npm test`) |
+| 6.01 | ≥5 unit tests | ✅ | 180 pytest tests in `backend/tests/` and 38 Vitest tests in `src/` (`npm test`) |
 | 6.02 | Git | ✅ | GitHub repo `SebiSomu/Site-DAW` |
 | 6.03 | GitHub Actions CI | 🟡 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml): backend tests + frontend check, tests and build. Done once a run on GitHub is confirmed green (screenshot of the Actions tab) |
 
