@@ -162,6 +162,7 @@ Every `POST` and `DELETE` needs the CSRF token, except the payment webhook, whic
 
 | Method | Endpoint | Access | Result |
 |---|---|---|---|
+| POST | `/api/contact` | public | Body `{name, email, subject, message}`, stored as plain text; the log records the message id, not the address. CAPTCHA comes in phase 8 |
 | POST | `/api/cart/validate` | public | Body `{"items": [{product_id, quantity}]}`. Returns `{lines, missing_product_ids, total_cents}` |
 | GET / POST | `/api/addresses` | logged in | The client's active addresses / add one |
 | DELETE | `/api/addresses/<id>` | owner | Archives the address, so past orders keep it |
@@ -190,6 +191,9 @@ Every route needs an admin session: a guest gets `401`, a client `403` (logged a
 | GET | `/api/admin/orders?status=` | Every client's orders, newest first, with the customer and payment status; optional filter by status code, `400` for an unknown one |
 | GET | `/api/admin/orders/<id>` | Order detail with the customer, address, payment and the statuses it can move to next |
 | PATCH | `/api/admin/orders/<id>/status` | Body `{"status"}`. Paid → Confirmed → Shipped → Delivered, one step at a time; Awaiting payment, Paid or Confirmed can be cancelled (an open payment page is closed, a paid order is refunded and its jars go back in stock). Only Stripe's webhook can mark an order Paid. `409` for any other move, `502` when the refund fails (the order is kept) |
+| GET | `/api/admin/messages?page=&per_page=` | Contact messages, newest first, 20 a page (at most 50) |
+| DELETE | `/api/admin/messages/<id>` | Deletes a message |
+| GET | `/api/admin/logs?user_id=&action=&level=&date_from=&date_to=&page=&per_page=` | Activity log viewer: reads `activity.log` and its rotated files, newest first, 50 a page (at most 200), plus the list of actions seen for the filter. Lines it cannot read are skipped; the filters are validated (`400` otherwise) |
 
 ## Design
 

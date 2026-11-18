@@ -20,5 +20,11 @@ class ReviewRepository(SqlAlchemyRepository[Review]):
 class ContactMessageRepository(SqlAlchemyRepository[ContactMessage]):
     model = ContactMessage
 
-    def list_newest_first(self) -> Sequence[ContactMessage]:
-        return self.session.scalars(select(ContactMessage).order_by(ContactMessage.created_at.desc())).all()
+    def page_newest_first(self, page: int, per_page: int) -> Sequence[ContactMessage]:
+        statement = (
+            select(ContactMessage)
+            .order_by(ContactMessage.created_at.desc(), ContactMessage.id.desc())
+            .limit(per_page)
+            .offset((page - 1) * per_page)
+        )
+        return self.session.scalars(statement).all()

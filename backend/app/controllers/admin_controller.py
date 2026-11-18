@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
 
 from app.models import RoleName
 from app.schemas import (
@@ -14,9 +14,20 @@ from app.schemas import (
     parse_form,
     parse_query,
 )
+from app.schemas.contact import (
+    ContactMessageResponse,
+    LogEntryResponse,
+    LogPageResponse,
+    LogQuery,
+    MessagesPageResponse,
+    PageQuery,
+    page_count,
+)
 from app.security import role_required
+from app.services.activity_log_reader import ActivityLogReader, LogFilter
 from app.services.admin_order_service import AdminOrderService
 from app.services.admin_product_service import AdminProductService
+from app.services.contact_service import ContactService
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/api/admin")
 admin_only = role_required(RoleName.ADMIN)
@@ -107,3 +118,48 @@ def get_order(order_id: int):
 def change_order_status(order_id: int):
     service = AdminOrderService()
     return admin_order_json(service, service.change_status(order_id, parse_body(OrderStatusChangeRequest).status))
+
+
+@admin_bp.get("/messages")
+@admin_only
+def list_messages():
+    query = parse_query(PageQuery)
+    messages, total = ContactService().page(query.page, query.per_page)
+    response = MessagesPageResponse(
+        messages=[ContactMessageResponse.from_message(message) for message in messages],
+        total=total,
+        page=query.page,
+        per_page=query.per_page,
+        pages=page_count(total, query.per_page),
+    )
+    return jsonify(response.model_dump(mode="json"))
+
+
+@admin_bp.delete("/messages/<int:message_id>")
+@admin_only
+def delete_message(message_id: int):
+    ContactService().delete(message_id)
+    return "", 204
+
+
+@admin_bp.get("/logs")
+@admin_only
+def activity_log():
+    query = parse_query(LogQuery)
+    log_filter = LogFilter(
+        user_id=query.user_id,
+        action=query.action,
+        level=query.level,
+        date_from=query.date_from,
+        date_to=query.date_to,
+    )
+    found = ActivityLogReader(current_app.config["ACTIVITY_LOG_PATH"]).search(log_filter, query.page, query.per_page)
+    response = LogPageResponse(
+        entries=[LogEntryResponse(**vars(entry)) for entry in found.entries],
+        total=found.total,
+        page=found.page,
+        per_page=found.per_page,
+        pages=page_count(found.total, found.per_page),
+        actions=found.actions,
+    )
+    return jsonify(response.model_dump(mode="json"))

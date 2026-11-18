@@ -445,10 +445,11 @@ Rubric 9.04, 9.05, 10.03 (uploads) and the admin side of 2.04, 3.04 and 7.01. Ea
 - Logged: `order_status_changed` (from, to, by=admin), `order_cancelled by=admin`.
 - Tests: `backend/tests/test_admin_orders.py`.
 
-**7.4 Contact form, messages and activity log**
+**7.4 Contact form, messages and activity log ✅**
 
-- `POST /api/contact` (CAPTCHA and rate limit come in phase 8), `GET /api/admin/messages`, `DELETE /api/admin/messages/<id>`.
-- `GET /api/admin/logs`: reads `activity.log` and its rotated files, filters by user, action, level and date, newest first, paginated.
+- `POST /api/contact` (CAPTCHA and rate limit come in phase 8): name, subject and message stored as plain text, e-mail lowercased; logged as `contact_message` with the id only, so no address ends up in the log. `GET /api/admin/messages` (newest first, paginated), `DELETE /api/admin/messages/<id>` (logged as `message_deleted`).
+- `GET /api/admin/logs`: `ActivityLogReader` parses `activity.log` and its rotated files (`.1` to `.5`) with one strict pattern, newest first; filters by user id, action, level and date range, paginated, and returns the actions seen for the filter list. Lines it cannot read (tracebacks, bad dates) are skipped; details keep any `|` they contain. The query is validated (action pattern, known levels, start date before end date).
+- Tests: `backend/tests/test_contact_and_logs.py`.
 
 **7.5 Admin frontend and contact page**
 
