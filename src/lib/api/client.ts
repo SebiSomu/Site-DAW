@@ -34,17 +34,30 @@ export class ApiClient {
     return this.write<T>('POST', path, body)
   }
 
+  put<T = unknown>(path: string, body?: unknown): Promise<T> {
+    return this.write<T>('PUT', path, body)
+  }
+
+  patch<T = unknown>(path: string, body?: unknown): Promise<T> {
+    return this.write<T>('PATCH', path, body)
+  }
+
   delete<T = unknown>(path: string): Promise<T> {
     return this.write<T>('DELETE', path)
   }
 
-  private async write<T>(method: string, path: string, body?: unknown): Promise<T> {
+  postForm<T = unknown>(path: string, form: FormData): Promise<T> {
+    return this.send<T>('POST', path, form)
+  }
+
+  private write<T>(method: string, path: string, body?: unknown): Promise<T> {
+    const json = body === undefined ? undefined : JSON.stringify(body)
+    return this.send<T>(method, path, json, { 'Content-Type': 'application/json' })
+  }
+
+  private async send<T>(method: string, path: string, body?: string | FormData, headers: Record<string, string> = {}): Promise<T> {
     const token = await this.fetchCsrfToken()
-    return this.request<T>(path, {
-      method,
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': token },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    })
+    return this.request<T>(path, { method, headers: { ...headers, 'X-CSRFToken': token }, body })
   }
 
   private fetchCsrfToken(): Promise<string> {
@@ -57,7 +70,10 @@ export class ApiClient {
     return this.csrfToken
   }
 
-  private async request<T>(path: string, init: { method?: string; headers?: Record<string, string>; body?: string } = {}): Promise<T> {
+  private async request<T>(
+    path: string,
+    init: { method?: string; headers?: Record<string, string>; body?: string | FormData } = {},
+  ): Promise<T> {
     let response: Response
     try {
       response = await fetch(this.baseUrl + path, {

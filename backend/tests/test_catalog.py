@@ -105,6 +105,7 @@ def test_sitemap_lists_categories_and_products(api):
     assert response.mimetype == "application/xml"
     body = response.get_data(as_text=True)
     assert "<loc>http://localhost/about</loc>" in body
+    assert "<loc>http://localhost/contact</loc>" in body
     assert "<loc>http://localhost/products?category=jams</loc>" in body
     assert body.count("<loc>http://localhost/products/") == len(PRODUCTS)
 

@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from logging.handlers import RotatingFileHandler
 
 from flask import Flask, has_request_context, request
@@ -25,7 +26,9 @@ class ActivityLogger:
         handler = RotatingFileHandler(
             path, maxBytes=MAX_LOG_BYTES, backupCount=LOG_BACKUP_COUNT, encoding="utf-8", delay=True
         )
-        handler.setFormatter(logging.Formatter(LOG_FORMAT))
+        formatter = logging.Formatter(LOG_FORMAT)
+        formatter.converter = time.gmtime
+        handler.setFormatter(formatter)
         self._logger.addHandler(handler)
 
     def info(self, action: str, details: str = "") -> None:

@@ -4,11 +4,19 @@
   import { router } from './lib/router/router.svelte'
   import { auth } from './lib/stores/auth.svelte'
   import AboutPage from './pages/AboutPage.svelte'
+  import AdminActivityPage from './pages/admin/AdminActivityPage.svelte'
+  import AdminDashboardPage from './pages/admin/AdminDashboardPage.svelte'
+  import AdminMessagesPage from './pages/admin/AdminMessagesPage.svelte'
+  import AdminOrderPage from './pages/admin/AdminOrderPage.svelte'
+  import AdminOrdersPage from './pages/admin/AdminOrdersPage.svelte'
+  import AdminProductEditPage from './pages/admin/AdminProductEditPage.svelte'
+  import AdminProductsPage from './pages/admin/AdminProductsPage.svelte'
   import AccountPage from './pages/AccountPage.svelte'
   import CartPage from './pages/CartPage.svelte'
   import CheckoutCancelledPage from './pages/CheckoutCancelledPage.svelte'
   import CheckoutPage from './pages/CheckoutPage.svelte'
   import CheckoutSuccessPage from './pages/CheckoutSuccessPage.svelte'
+  import ContactPage from './pages/ContactPage.svelte'
   import HomePage from './pages/HomePage.svelte'
   import LoginPage from './pages/LoginPage.svelte'
   import NotFoundPage from './pages/NotFoundPage.svelte'
@@ -21,6 +29,8 @@
   const path = $derived(router.url.pathname)
   const productSlug = $derived(path.match(/^\/products\/([^/]+)$/)?.[1])
   const orderId = $derived(path.match(/^\/account\/orders\/([1-9][0-9]*)$/)?.[1])
+  const adminProductId = $derived(path.match(/^\/admin\/products\/([1-9][0-9]*)$/)?.[1])
+  const adminOrderId = $derived(path.match(/^\/admin\/orders\/([1-9][0-9]*)$/)?.[1])
 
   auth.load()
 </script>
@@ -33,6 +43,8 @@
     <HomePage />
   {:else if path === '/about'}
     <AboutPage />
+  {:else if path === '/contact'}
+    <ContactPage />
   {:else if path === '/products'}
     <ProductsPage />
   {:else if productSlug}
@@ -59,6 +71,26 @@
     {#key orderId}
       <OrderPage id={orderId} />
     {/key}
+  {:else if path === '/admin'}
+    <AdminDashboardPage />
+  {:else if path === '/admin/products'}
+    <AdminProductsPage />
+  {:else if path === '/admin/products/new'}
+    <AdminProductEditPage id={null} />
+  {:else if adminProductId}
+    {#key adminProductId}
+      <AdminProductEditPage id={adminProductId} />
+    {/key}
+  {:else if path === '/admin/orders'}
+    <AdminOrdersPage />
+  {:else if adminOrderId}
+    {#key adminOrderId}
+      <AdminOrderPage id={adminOrderId} />
+    {/key}
+  {:else if path === '/admin/messages'}
+    <AdminMessagesPage />
+  {:else if path === '/admin/activity-log'}
+    <AdminActivityPage />
   {:else}
     <NotFoundPage />
   {/if}

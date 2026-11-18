@@ -154,7 +154,7 @@ All public, read-only (`GET`, no CSRF token needed). Prices are integer cents (`
 
 `sort` is `newest` (default), `price-asc`, `price-desc` or `name`; `per_page` is 1–48 (default 12). Invalid values return `400`. Inactive products are hidden.
 
-Frontend pages: `/` (home), `/about` (the family story and Mum's year in the kitchen), `/products` (catalogue with category links, search, sort, pagination, all kept in the URL), `/products/<slug>` (product page), anything else shows the 404 page. Every page sets its title, description, canonical URL and Open Graph tags through `src/lib/components/Seo.svelte`.
+Frontend pages: `/` (home), `/about` (the family story and Mum's year in the kitchen), `/contact` (write to Mum), `/products` (catalogue with category links, search, sort, pagination, all kept in the URL), `/products/<slug>` (product page), anything else shows the 404 page. Every page sets its title, description, canonical URL and Open Graph tags through `src/lib/components/Seo.svelte`.
 
 ## Shop API
 
@@ -194,6 +194,8 @@ Every route needs an admin session: a guest gets `401`, a client `403` (logged a
 | GET | `/api/admin/messages?page=&per_page=` | Contact messages, newest first, 20 a page (at most 50) |
 | DELETE | `/api/admin/messages/<id>` | Deletes a message |
 | GET | `/api/admin/logs?user_id=&action=&level=&date_from=&date_to=&page=&per_page=` | Activity log viewer: reads `activity.log` and its rotated files, newest first, 50 a page (at most 200), plus the list of actions seen for the filter. Lines it cannot read are skipped; the filters are validated (`400` otherwise) |
+
+Admin pages (admins see an "Admin" link in the header; anyone else gets a polite refusal, and the API refuses them anyway): `/admin` (dashboard), `/admin/products`, `/admin/products/new`, `/admin/products/<id>` (details and photos), `/admin/orders`, `/admin/orders/<id>` (next steps), `/admin/messages`, `/admin/activity-log`. Log in with `admin@example.com` and the `ADMIN_PASSWORD` from `backend/.env`. Times in the activity log are stored in UTC and shown in the viewer's time zone.
 
 ## Design
 

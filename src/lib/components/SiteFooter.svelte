@@ -22,6 +22,7 @@
         <h2 id="footer-kitchen">From the kitchen</h2>
         <p>Made with love, in a copper pot, the old-fashioned way. All prices are in lei.</p>
         <p><a href="/about">Read our story</a></p>
+        <p><a href="/contact">Write to us</a></p>
       </section>
       <section aria-labelledby="footer-credits">
         <h2 id="footer-credits">Picture credits</h2>

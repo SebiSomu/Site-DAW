@@ -32,4 +32,4 @@ class CatalogService:
     def public_paths(self) -> list[str]:
         category_paths = [f"/products?category={category.slug}" for category in self.list_categories()]
         product_paths = [f"/products/{product.slug}" for product in self.products.list_active()]
-        return ["/", "/about", "/products", *category_paths, *product_paths]
+        return ["/", "/about", "/contact", "/products", *category_paths, *product_paths]

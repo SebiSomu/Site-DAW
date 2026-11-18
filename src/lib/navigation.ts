@@ -5,10 +5,11 @@ export interface NavLink {
 
 export type CurrentState = 'page' | 'true' | undefined
 
-export function mainNavLinks(isLoggedIn: boolean): NavLink[] {
+export function mainNavLinks(isLoggedIn: boolean, isAdmin = false): NavLink[] {
   return [
     { href: '/about', label: 'About us' },
     { href: '/products', label: 'All jars' },
+    ...(isAdmin ? [{ href: '/admin', label: 'Admin' }] : []),
     isLoggedIn ? { href: '/account', label: 'My account' } : { href: '/login', label: 'Log in' },
   ]
 }

@@ -7,7 +7,7 @@
   let open = $state(false)
 
   const here = $derived(router.url.pathname + router.url.search)
-  const links = $derived(mainNavLinks(auth.user !== null))
+  const links = $derived(mainNavLinks(auth.user !== null, auth.user?.role === 'admin'))
 
   $effect(() => {
     void here

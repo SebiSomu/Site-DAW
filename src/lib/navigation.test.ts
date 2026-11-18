@@ -10,6 +10,11 @@ describe('mainNavLinks', () => {
     expect(mainNavLinks(true).at(-1)).toEqual({ href: '/account', label: 'My account' })
   })
 
+  it('shows the admin link to the admin only', () => {
+    expect(mainNavLinks(true).some((link) => link.href === '/admin')).toBe(false)
+    expect(mainNavLinks(true, true).map((link) => link.label)).toEqual(['About us', 'All jars', 'Admin', 'My account'])
+  })
+
   it('no longer lists the shelves one by one', () => {
     expect(mainNavLinks(false).some((link) => link.href.includes('category='))).toBe(false)
   })

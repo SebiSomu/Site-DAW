@@ -350,7 +350,7 @@ Free services used: Azure for Students, Let's Encrypt, Stripe test mode, Cloudfl
 | 4. UI shell ✅ | Styles (5 CSS files), header/footer, responsive nav, carousel, animations | 4.03, 4.04, 5.01, 5.02 |
 | 5. Cart & orders ✅ | CartStore, AuthStore, login and register pages, route guards, checkout, addresses, order history, cancel, reviews, plain-text sanitizing, Vitest. Orders wait at `Awaiting payment` until phase 6 | 2.02, 3.03, 3.04 |
 | 6. Payments | Stripe Checkout + webhook, success/cancel pages, stock decrement on payment, stock restore and refund when a paid order is cancelled, re-check stock at payment time. Remove the "not switched on yet" note from `OrderPage.svelte` | 8.02 |
-| 7. Admin (in progress) | Product CRUD, secure image upload pipeline, orders, messages, log viewer | 9.04, 9.05, 10.03 |
+| 7. Admin ✅ | Product CRUD, secure image upload pipeline, orders, messages, log viewer | 9.04, 9.05, 10.03 |
 | 8. Hardening | Rate limiting, Turnstile, CSP & headers, XSS sanitizing, `.htaccess` files | 9.02, 9.03, 10.01, 10.02, 10.04, 10.05 |
 | 9. Tests | Full test list §8, coverage report | 6.01 |
 | 10. Deploy | Azure VM + Apache + HTTPS, Stripe webhook live (test mode) | 7.02 |
@@ -451,11 +451,19 @@ Rubric 9.04, 9.05, 10.03 (uploads) and the admin side of 2.04, 3.04 and 7.01. Ea
 - `GET /api/admin/logs`: `ActivityLogReader` parses `activity.log` and its rotated files (`.1` to `.5`) with one strict pattern, newest first; filters by user id, action, level and date range, paginated, and returns the actions seen for the filter list. Lines it cannot read (tracebacks, bad dates) are skipped; details keep any `|` they contain. The query is validated (action pattern, known levels, start date before end date).
 - Tests: `backend/tests/test_contact_and_logs.py`.
 
-**7.5 Admin frontend and contact page**
+**7.5 Admin frontend and contact page ✅**
 
-- Admin link in the header for admins only, `AdminGate` (the backend still enforces the role), pages from §5, `/contact`.
+- "Admin" link in the header for admins only; `AdminGate` shows a polite refusal to anyone else (the backend still enforces the role) and adds the admin sub-navigation.
+- Pages: `/admin` (takings, orders to send, awaiting payment, messages, orders by status, running low, newest orders), `/admin/products` (every jar with its photo, shelf, price, stock and whether it is shown, searchable), `/admin/products/new` and `/admin/products/<id>` (all fields, web address preview, price typed in lei, delete or hide, photos with alt text, main photo and remove), `/admin/orders` (filter by status in the URL), `/admin/orders/<id>` (only the allowed next steps as buttons, a refund warning before cancelling a paid order), `/admin/messages` (reply by e-mail, delete, pages), `/admin/activity-log` (filters by action, user, level and dates kept in the URL, pages).
+- The photo form checks the extension and the 12 MB limit before sending; the server checks everything again.
+- `/contact` (public, in the footer and the sitemap) sends to `POST /api/contact`.
+- `ApiClient` gained `put`, `patch` and `postForm` (multipart, the browser sets the boundary).
+- Tests: `src/lib/admin.test.ts` (price in lei, ingredients, web address, photo check, step labels, query links), `navigation.test.ts`, `client.test.ts`, `format.test.ts`.
 
-**7.6 Docs and browser check**
+**7.6 Docs and browser check ✅**
+
+- Browser run against the fake gateway: a client is refused `/admin`; a guest sends a contact message; the admin sees it on the dashboard, adds a jar (web address from a Romanian name), has a `.php` file stopped in the browser and a photo with hidden data stopped by the server, uploads a clean photo that then shows in the shop, rejects a bad price, filters orders, moves an order paid → confirmed → shipped, cancels an unpaid one, reads and deletes the message and filters the log. Desktop and phone widths.
+- Found and fixed on the way: the activity log is now written in UTC and the frontend reads times without an offset as UTC, so order and log times agree in the viewer's time zone; form fields no longer stretch to match a taller neighbour.
 
 ---
 

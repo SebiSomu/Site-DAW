@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -127,7 +127,7 @@ def test_log_viewer_filters_by_action_user_and_level(admin_api, new_api):
 
 
 def test_log_viewer_filters_by_date(admin_api):
-    today = date.today()
+    today = datetime.now(timezone.utc).date()
     yesterday = today - timedelta(days=1)
 
     assert admin_api.get(f"/api/admin/logs?date_from={today}&date_to={today}").get_json()["total"] >= 1
@@ -189,6 +189,13 @@ def test_log_viewer_with_no_log_file_yet(app, admin_api):
     os.remove(app.config["ACTIVITY_LOG_PATH"])
 
     assert admin_api.get("/api/admin/logs").get_json()["total"] == 0
+
+
+def test_log_lines_are_written_in_utc(admin_api):
+    newest = admin_api.get("/api/admin/logs").get_json()["entries"][0]
+
+    logged = datetime.fromisoformat(newest["timestamp"]).replace(tzinfo=timezone.utc)
+    assert abs(datetime.now(timezone.utc) - logged) < timedelta(minutes=1)
 
 
 def test_parse_line_reads_guest_and_user_lines():
