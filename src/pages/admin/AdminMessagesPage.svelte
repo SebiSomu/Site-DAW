@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { confirmation } from '../../lib/stores/confirm.svelte'
   import { hrefWithQuery, positiveInt } from '../../lib/admin'
   import type { MessagesPage } from '../../lib/api/admin-types'
   import { api, errorMessage } from '../../lib/api/client'
@@ -34,7 +35,12 @@
   }
 
   async function remove(id: number, subject: string): Promise<void> {
-    if (!window.confirm(`Delete the message "${subject}"?`)) return
+    const confirmed = await confirmation.ask({
+      title: 'Delete this message?',
+      message: `"${subject}" will be gone for good.`,
+      confirmLabel: 'Delete',
+    })
+    if (!confirmed) return
     busy = true
     deleteError = ''
     try {

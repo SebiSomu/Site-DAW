@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ConfirmDialog from './lib/components/ConfirmDialog.svelte'
   import SiteFooter from './lib/components/SiteFooter.svelte'
   import SiteHeader from './lib/components/SiteHeader.svelte'
   import { router } from './lib/router/router.svelte'
@@ -97,3 +98,4 @@
 </main>
 
 <SiteFooter />
+<ConfirmDialog />

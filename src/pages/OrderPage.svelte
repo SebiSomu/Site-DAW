@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { confirmation } from '../lib/stores/confirm.svelte'
   import { ApiError, api, errorMessage } from '../lib/api/client'
   import type { OrderDetail } from '../lib/api/types'
   import AuthGate from '../lib/components/AuthGate.svelte'
@@ -45,10 +46,15 @@
   }
 
   async function cancelOrder(): Promise<void> {
-    const question = refundOnCancel
-      ? `Cancel order ${id}? The full amount will be refunded to your card.`
-      : `Cancel order ${id}?`
-    if (!window.confirm(question)) return
+    const confirmed = await confirmation.ask({
+      title: `Cancel order ${id}?`,
+      message: refundOnCancel
+        ? 'The full amount will be refunded to your card.'
+        : 'Nothing has been charged, so there is nothing to refund.',
+      confirmLabel: 'Cancel the order',
+      cancelLabel: 'Keep my order',
+    })
+    if (!confirmed) return
     busy = true
     cancelError = ''
     try {

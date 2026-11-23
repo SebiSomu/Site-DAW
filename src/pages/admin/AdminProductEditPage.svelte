@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { confirmation } from '../../lib/stores/confirm.svelte'
   import { checkPhoto, ingredientsFrom, parseLei, PHOTO_ACCEPT, slugify, toLeiInput } from '../../lib/admin'
   import type { AdminProductDetail, AdminProductInput } from '../../lib/api/admin-types'
   import { ApiError, api, errorMessage } from '../../lib/api/client'
@@ -117,7 +118,13 @@
   }
 
   async function remove(): Promise<void> {
-    if (!product || !window.confirm(`Delete ${product.name} for good, with its photos?`)) return
+    if (!product) return
+    const confirmed = await confirmation.ask({
+      title: `Delete ${product.name}?`,
+      message: 'The jar and its photos will be gone for good.',
+      confirmLabel: 'Delete the jar',
+    })
+    if (!confirmed) return
     saving = true
     saveError = ''
     try {
@@ -173,8 +180,9 @@
     return photoAction(() => api.post<{ product: AdminProductDetail }>(`/admin/images/${imageId}/main`))
   }
 
-  function removePhoto(imageId: number): void {
-    if (!window.confirm('Remove this photo?')) return
+  async function removePhoto(imageId: number): Promise<void> {
+    const confirmed = await confirmation.ask({ title: 'Remove this photo?', confirmLabel: 'Remove' })
+    if (!confirmed) return
     void photoAction(() => api.delete<{ product: AdminProductDetail }>(`/admin/images/${imageId}`))
   }
 </script>

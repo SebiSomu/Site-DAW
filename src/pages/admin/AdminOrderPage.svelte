@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { confirmation } from '../../lib/stores/confirm.svelte'
   import { stepLabel } from '../../lib/admin'
   import type { AdminOrderDetail } from '../../lib/api/admin-types'
   import { ApiError, api, errorMessage } from '../../lib/api/client'
@@ -29,13 +30,19 @@
       })
   })
 
-  function confirmCancel(current: AdminOrderDetail): boolean {
-    const refund = wasPaid ? ` ${formatPrice(current.total_cents)} will be refunded to the customer's card.` : ''
-    return window.confirm(`Cancel order ${current.id}?${refund}`)
+  function confirmCancel(current: AdminOrderDetail): Promise<boolean> {
+    return confirmation.ask({
+      title: `Cancel order ${current.id}?`,
+      message: wasPaid
+        ? `${formatPrice(current.total_cents)} will be refunded to the customer's card and the jars go back in stock.`
+        : 'The customer has not paid, so nothing is refunded.',
+      confirmLabel: 'Cancel the order',
+      cancelLabel: 'Keep it',
+    })
   }
 
   async function moveTo(code: string): Promise<void> {
-    if (!order || (code === 'cancelled' && !confirmCancel(order))) return
+    if (!order || (code === 'cancelled' && !(await confirmCancel(order)))) return
     busy = true
     changeError = ''
     try {
