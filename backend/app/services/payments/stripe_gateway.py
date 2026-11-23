@@ -23,13 +23,17 @@ EVENT_KINDS = {
 }
 
 
+def describe_stripe_error(error: stripe.StripeError) -> str:
+    return f"{type(error).__name__} code={error.code or '-'} param={getattr(error, 'param', None) or '-'}"
+
+
 def reports_gateway_errors(method):
     @wraps(method)
     def guarded(*args, **kwargs):
         try:
             return method(*args, **kwargs)
         except stripe.StripeError as error:
-            activity_logger.warning("payment_gateway_error", type(error).__name__)
+            activity_logger.warning("payment_gateway_error", describe_stripe_error(error))
             raise PaymentError() from error
 
     return guarded
@@ -100,7 +104,6 @@ class StripeGateway(PaymentGateway):
     def _checkout_params(self, order: Order) -> dict:
         return {
             "mode": "payment",
-            "payment_method_types": ["card"],
             "client_reference_id": str(order.id),
             "metadata": {"order_id": str(order.id)},
             "expires_at": int(time.time()) + CHECKOUT_LIFETIME_SECONDS,

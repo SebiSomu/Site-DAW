@@ -219,7 +219,7 @@ def test_stripe_checkout_sends_order_prices_in_ron_by_card(order):
     assert sent["method"] == "post" and sent["url"].endswith("/v1/checkout/sessions")
     form = parse_qs(sent["body"])
     assert form["mode"] == ["payment"]
-    assert form["payment_method_types[0]"] == ["card"]
+    assert "payment_method_types[0]" not in form
     assert form["client_reference_id"] == [str(order.id)]
     assert form["metadata[order_id]"] == [str(order.id)]
     assert form["success_url"] == [f"{SITE_URL}/checkout/success?order={order.id}"]
