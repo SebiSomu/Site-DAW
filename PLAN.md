@@ -505,13 +505,15 @@ Rubric 9.02, 9.04, 9.05 (Apache side), 10.01, 10.02, 10.04, 10.05. Already done 
 - XSS re-check: contact message and admin product text with `<script>` come back as text (§8 item 17); no `{@html}` anywhere.
 - Tests: every header present on API, error and robots responses, HSTS only over HTTPS, `Server` hides Werkzeug and Python, site CSP has no `unsafe-inline`, `unsafe-eval`, `*`, `data:` or `blob:` and trusts only Cloudflare outside our origin, no `{@html}`, `eval`, `new Function` or `innerHTML =` in the frontend (`backend/tests/test_security_headers.py`).
 
-**8.4 `.htaccess` files and Apache config**
+**8.4 `.htaccess` files and Apache config ✅**
 
 - `public/.htaccess` (copied into `dist/`): SPA fallback that leaves real files, `/api`, `/uploads`, `/robots.txt` and `/sitemap.xml` alone; `Options -Indexes`; deny dotfiles except `/.well-known/` (Let's Encrypt); deny `*.log *.db *.sqlite *.py *.bak *.ini *.env`; the 8.3 headers; `LimitRequestBody 12648448` (same 12 MB + 64 KB as Flask).
 - `backend/uploads/.htaccess`: only names matching `^[0-9a-f]{32}\.webp$`, `ForceType image/webp`, `nosniff`, `RemoveHandler`/`SetHandler none`, `php_flag engine off`, no listing.
 - `deploy/apache/`: vhost draft (`AllowOverride All`, `WSGIScriptAlias /api`, `Alias /uploads`) and `security.conf` (`ServerTokens Prod`, `ServerSignature Off`, `TraceEnable Off`, `Header unset X-Powered-By`). Used for real in phase 10.
 - CI job: start Apache in the GitHub Actions runner with the built `dist/` and the two `.htaccess` files, then `deploy/check-apache.sh` curls `/.env`, `/.git/config`, `/logs/`, `/x.db`, `/uploads/x.php`, `/uploads/` (403 or 404), a deep SPA route (200), a 13 MB POST (413), and checks the headers.
-- Test: the CSP in `.htaccess` equals the one in `headers.py`.
+- Test: the headers in `.htaccess` equal `security-headers.json`, `LimitRequestBody` equals Flask's limit, the uploads pattern equals `UploadStorage`'s, the vhost runs one process (`backend/tests/test_htaccess.py`).
+- Done: `deploy/apache-test-setup.sh` builds the same layout as the VM in `/srv/mums-jams` (refuses to run outside CI unless `ALLOW_APACHE_TEST_SETUP=1`), `deploy/check-apache.sh` runs 46 checks; all pass on Ubuntu 24.04 with Apache 2.4, mod_wsgi and mod_php, and the rate limit still answers 429 behind mod_wsgi.
+- Found on the way: `wsgi.py` never read `backend/.env` (only the `flask` command does), so the VM would have started with no keys; it now calls `load_dotenv` first. mod_rewrite in `.htaccess` needs `SymLinksIfOwnerMatch`. mod_wsgi wants `WSGICallableObject app`. The venv must use the Python that mod_wsgi was built for (3.12 on Ubuntu 24.04). Ubuntu's own `security.conf` loads after ours and resets `ServerTokens`, so ours is installed as `zz-mums-jams-security.conf`. `upload-artifact` drops hidden files unless `include-hidden-files: true`, which would have lost `dist/.htaccess`.
 
 **8.5 Docs and browser check**
 

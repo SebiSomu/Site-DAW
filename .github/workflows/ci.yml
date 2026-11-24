@@ -51,4 +51,22 @@ jobs:
         with:
           name: frontend-dist
           path: dist
+          include-hidden-files: true
           retention-days: 7
+
+  apache:
+    name: Apache, .htaccess and headers
+    runs-on: ubuntu-24.04
+    needs: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: dist
+      - run: test -f dist/.htaccess
+      - run: sudo apt-get update -q && sudo apt-get install -y -q apache2 libapache2-mod-wsgi-py3 libapache2-mod-php
+      - run: bash deploy/apache-test-setup.sh .
+      - run: bash deploy/check-apache.sh http://localhost 0123456789abcdef0123456789abcdef.webp
+      - if: failure()
+        run: sudo tail -n 60 /var/log/apache2/mums-jams-error.log

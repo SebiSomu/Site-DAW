@@ -1,0 +1,44 @@
+Options -Indexes -MultiViews -ExecCGI +SymLinksIfOwnerMatch
+DirectoryIndex index.html
+ServerSignature Off
+LimitRequestBody 12648448
+AddDefaultCharset utf-8
+AddType application/manifest+json .webmanifest
+AddType font/woff2 .woff2
+
+<FilesMatch "(^\.|\.(log|db|sqlite|sqlite3|py|pyc|bak|ini|env|cfg|conf|sql|sh|swp|orig|old|tmp|map)$)">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^\.well-known/acme-challenge/[A-Za-z0-9_-]+$ - [L]
+    RewriteRule (^|/)\. - [F]
+    RewriteRule \.(log|db|sqlite|sqlite3|py|pyc|bak|ini|env|cfg|conf|sql|sh|swp|orig|old|tmp|map)$ - [F,NC]
+    RewriteRule ^(logs|backend|instance|migrations|node_modules|src|deploy|docs|tests|venv)(/|$) - [F,NC]
+    RewriteRule ^(api|uploads)(/|$) - [L]
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+    RewriteRule \.[A-Za-z0-9]{2,5}$ - [R=404,L]
+    RewriteRule ^ index.html [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "DENY"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()"
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests" "expr=%{HTTPS} == 'on'"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" "expr=%{HTTPS} != 'on'"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" "expr=%{HTTPS} == 'on'"
+    Header always unset X-Powered-By
+    Header unset ETag
+    <If "%{REQUEST_URI} =~ m#^/assets/#">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </If>
+    <Else>
+        Header set Cache-Control "no-cache"
+    </Else>
+</IfModule>
