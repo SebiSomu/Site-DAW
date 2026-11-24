@@ -474,7 +474,7 @@ Rubric 9.02, 9.04, 9.05 (Apache side), 10.01, 10.02, 10.04, 10.05. Already done 
 **Decisions**
 
 - **Flask is the source of truth for limits and CAPTCHA**; Apache only adds what Flask cannot see (static files, request size before Python runs).
-- **One CSP, written once.** The policy lives in `backend/app/security/headers.py`; the root `.htaccess` carries the same string, and a test fails if the two drift apart.
+- **One CSP, written once.** The headers live in `security-headers.json` at the repo root, read by Flask (`backend/app/security/headers.py`) and by `vite.config.ts`; the root `.htaccess` carries the same strings, and a test fails if they drift apart.
 - **Rate limits are counted in memory** (`memory://`). The VM runs one mod_wsgi process, so counts are exact; more processes would need Redis, which is out of scope.
 - **The Stripe webhook is exempt from the rate limit** as it is from CSRF: Stripe retries in bursts, and the signature already authenticates it.
 - **CAPTCHA tokens are single use.** The widget is reset after every failed submit, so a wrong password never leaves the form stuck.
@@ -496,13 +496,14 @@ Rubric 9.02, 9.04, 9.05 (Apache side), 10.01, 10.02, 10.04, 10.05. Already done 
 - `Turnstile.svelte` loads the script on demand, renders the widget with a label, exposes the token to the form and resets after a failed submit; used on `/login`, `/register` and `/contact`.
 - Tests: each of the three routes rejects a missing or bad token and accepts a good one; verifier error maps to 503; the real verifier sends the secret and IP (HTTP call faked).
 
-**8.3 Security headers and CSP**
+**8.3 Security headers and CSP ✅**
 
 - `SecurityHeaders` (`after_request`) on every Flask response: `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera, microphone, geolocation, payment off), `Cross-Origin-Opener-Policy: same-origin`, `Strict-Transport-Security` (production only, `max-age=31536000; includeSubDomains`); the `Server` header reduced to a plain name.
-- Site CSP: `default-src 'self'`; scripts and frames also from `https://challenges.cloudflare.com` (Turnstile); `img-src 'self' data:`; `object-src 'none'`; `base-uri 'self'`; `form-action 'self'`; `frame-ancestors 'none'`; `upgrade-insecure-requests`. `style-src` allows `'unsafe-inline'` only if Svelte's transitions and `style:` attributes need it; check and remove if possible. JSON responses get `default-src 'none'; frame-ancestors 'none'`.
-- Vite dev and preview send the same headers, so CSP violations show up locally, not only on the VM.
+- Site CSP: `default-src 'self'`; scripts and frames also from `https://challenges.cloudflare.com` (Turnstile); `style-src`, `img-src`, `font-src` and `connect-src` `'self'` only, no `data:`; `object-src 'none'`; `base-uri 'self'`; `form-action 'self'`; `frame-ancestors 'none'`; `upgrade-insecure-requests` over HTTPS only (it would break `http://localhost`). No `'unsafe-inline'`: Svelte applies `style={...}` through `style.cssText`, which CSP allows, the build has no inline `<style>` or `<script>`, and the fonts are bundled files. JSON responses get `default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`.
+- `npm run preview` sends exactly the production headers; `npm run dev` adds only what Vite's hot reload needs (`'unsafe-inline'` styles, `ws://localhost`), so CSP violations show up locally, not only on the VM.
+- Checked in headless Chrome against `vite preview`: no violation on home, shop, product, about, contact, login, register, cart, admin and 404; the harvest calendar's computed styles still apply; all three fonts load. The Turnstile widget itself is checked in 8.5, because Cloudflare is not reachable from the build sandbox.
 - XSS re-check: contact message and admin product text with `<script>` come back as text (§8 item 17); no `{@html}` anywhere.
-- Tests: every header present on an API response, HSTS only in production, CSP has no `unsafe-eval` and no `*`.
+- Tests: every header present on API, error and robots responses, HSTS only over HTTPS, `Server` hides Werkzeug and Python, site CSP has no `unsafe-inline`, `unsafe-eval`, `*`, `data:` or `blob:` and trusts only Cloudflare outside our origin, no `{@html}`, `eval`, `new Function` or `innerHTML =` in the frontend (`backend/tests/test_security_headers.py`).
 
 **8.4 `.htaccess` files and Apache config**
 

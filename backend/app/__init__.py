@@ -8,6 +8,7 @@ from app.config import resolve_config
 from app.errors import register_error_handlers
 from app.extensions import csrf, db, limiter, login_manager, migrate
 from app.security import load_user, reject_anonymous
+from app.security.headers import security_headers
 from app.services.activity_logger import activity_logger
 from app.services.captcha import init_captcha
 from app.services.payments import init_payments
@@ -34,6 +35,7 @@ def create_app(config_name: str | None = None, overrides: dict | None = None) ->
     migrate.init_app(app, db, render_as_batch=True)
     csrf.init_app(app)
     limiter.init_app(app)
+    security_headers.init_app(app)
     login_manager.init_app(app)
     login_manager.user_loader(load_user)
     login_manager.unauthorized_handler(reject_anonymous)

@@ -17,6 +17,7 @@ class BaseConfig:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = False
+    HTTPS_HEADERS = False
     WTF_CSRF_TIME_LIMIT = None
     ACTIVITY_LOG_PATH = os.environ.get("ACTIVITY_LOG_PATH") or os.path.join(BACKEND_DIR, "logs", "activity.log")
     UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER") or os.path.join(BACKEND_DIR, "uploads")
@@ -60,6 +61,7 @@ class TestingConfig(BaseConfig):
 
 class ProductionConfig(BaseConfig):
     SESSION_COOKIE_SECURE = True
+    HTTPS_HEADERS = True
     REQUIRED_SETTINGS = (
         "STRIPE_SECRET_KEY",
         "STRIPE_WEBHOOK_SECRET",
