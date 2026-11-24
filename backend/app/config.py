@@ -20,6 +20,10 @@ class BaseConfig:
     UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER") or os.path.join(BACKEND_DIR, "uploads")
     MAX_UPLOAD_BYTES = MAX_UPLOAD_BYTES
     MAX_CONTENT_LENGTH = MAX_UPLOAD_BYTES + FORM_OVERHEAD_BYTES
+    RATELIMIT_ENABLED = True
+    RATELIMIT_APPLICATION = "100 per minute"
+    RATELIMIT_STORAGE_URI = "memory://"
+    RATELIMIT_HEADERS_ENABLED = False
     PAYMENT_GATEWAY = "stripe"
     STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
     STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
@@ -39,6 +43,7 @@ class TestingConfig(BaseConfig):
     SECRET_KEY = "test-secret-key"
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     ADMIN_PASSWORD = "Test-Password-123"
+    RATELIMIT_ENABLED = False
     PAYMENT_GATEWAY = "fake"
     STRIPE_SECRET_KEY = ""
     STRIPE_WEBHOOK_SECRET = ""

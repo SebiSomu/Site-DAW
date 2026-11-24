@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiClient, ApiError, errorMessage } from './client'
+import { ApiClient, ApiError, errorMessage, waitText } from './client'
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status })
@@ -95,5 +95,51 @@ describe('ApiClient', () => {
 
   it('hides unknown errors behind a friendly message', () => {
     expect(errorMessage(new Error('stack details'))).toBe('Something went wrong. Please try again later.')
+  })
+})
+
+describe('rate limiting', () => {
+  it('keeps the server message and reads Retry-After on a 429', async () => {
+    const message = 'Too many requests. Please try again in 42 seconds.'
+    stubFetch(new Response(JSON.stringify({ error: message }), { status: 429, headers: { 'Retry-After': '42' } }))
+
+    const error = await new ApiClient().get('/products').catch((caught: unknown) => caught)
+
+    expect(error).toBeInstanceOf(ApiError)
+    expect((error as ApiError).message).toBe(message)
+    expect((error as ApiError).retryAfterSeconds).toBe(42)
+    expect((error as ApiError).isRateLimited).toBe(true)
+  })
+
+  it('builds the wait message when a 429 has no JSON body', async () => {
+    stubFetch(new Response('Too Many Requests', { status: 429, headers: { 'Retry-After': '1' } }))
+
+    const error = (await new ApiClient().get('/products').catch((caught: unknown) => caught)) as ApiError
+
+    expect(error.message).toBe('Too many requests. Please try again in 1 second.')
+  })
+
+  it('falls back to "a moment" when Retry-After is missing or a date', async () => {
+    stubFetch(new Response('', { status: 429, headers: { 'Retry-After': 'Wed, 21 Oct 2026 07:28:00 GMT' } }))
+
+    const error = (await new ApiClient().get('/products').catch((caught: unknown) => caught)) as ApiError
+
+    expect(error.retryAfterSeconds).toBeNull()
+    expect(error.message).toBe('Too many requests. Please try again in a moment.')
+  })
+
+  it('has no wait time on other errors', async () => {
+    stubFetch(jsonResponse({ error: 'Not found.' }, 404))
+
+    const error = (await new ApiClient().get('/products/x').catch((caught: unknown) => caught)) as ApiError
+
+    expect(error.retryAfterSeconds).toBeNull()
+    expect(error.isRateLimited).toBe(false)
+  })
+
+  it('words the wait time', () => {
+    expect(waitText(1)).toBe('1 second')
+    expect(waitText(30)).toBe('30 seconds')
+    expect(waitText(null)).toBe('a moment')
   })
 })

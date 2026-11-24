@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify
 from flask_login import current_user, login_required
 from flask_wtf.csrf import generate_csrf
 
+from app.rate_limits import strict_limit
 from app.schemas import LoginRequest, RegisterRequest, UserResponse, parse_body
 from app.services.auth_service import AuthService
 
@@ -18,11 +19,13 @@ def csrf_token():
 
 
 @auth_bp.post("/auth/register")
+@strict_limit()
 def register():
     return user_json(AuthService().register(parse_body(RegisterRequest))), 201
 
 
 @auth_bp.post("/auth/login")
+@strict_limit()
 def login():
     return user_json(AuthService().login(parse_body(LoginRequest)))
 

@@ -1,10 +1,12 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
+from flask_limiter.errors import RateLimitExceeded
 from flask_wtf.csrf import CSRFError
 from pydantic import ValidationError as PydanticValidationError
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import HTTPException, InternalServerError, RequestEntityTooLarge
 
 from app.extensions import db
+from app.rate_limits import describe_wait, seconds_until_reset
 from app.services.activity_logger import activity_logger
 
 
@@ -105,6 +107,14 @@ def register_error_handlers(app: Flask) -> None:
     def handle_too_large(error: RequestEntityTooLarge):
         activity_logger.warning("upload_rejected", "reason=too_large")
         return error_response(UploadTooLargeError.message, UploadTooLargeError.status_code)
+
+    @app.errorhandler(RateLimitExceeded)
+    def handle_rate_limited(error: RateLimitExceeded):
+        seconds = seconds_until_reset()
+        activity_logger.warning("rate_limited", f"route={request.method} {request.path} limit={error.limit.limit}")
+        response, status = error_response(f"Too many requests. Please try again in {describe_wait(seconds)}.", 429)
+        response.headers["Retry-After"] = str(seconds)
+        return response, status
 
     @app.errorhandler(HTTPException)
     def handle_http_error(error: HTTPException):

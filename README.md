@@ -98,6 +98,8 @@ Run these from the `backend/` folder with the virtual environment active (`.\.ve
 
 Before the first run, edit `backend/.env`: set a long random `SECRET_KEY` and an `ADMIN_PASSWORD` (the admin account is only created when it is set). `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` can stay empty until you test real payments; `SITE_URL` is where Stripe sends the customer back. Production refuses to start without all three.
 
+To test real payments locally: create a Stripe account and stay in the sandbox; copy the `sk_test_` secret key into `STRIPE_SECRET_KEY`; keep only Cards on under Settings → Payment methods; install the Stripe CLI, run `stripe login`, then `stripe listen --events checkout.session.completed,checkout.session.expired --forward-to localhost:5000/api/payments/webhook` and put the `whsec_` value it prints into `STRIPE_WEBHOOK_SECRET`. Restart `flask run`, keep `stripe listen` open and pay with `4242 4242 4242 4242`, any future date and any CVC.
+
 | Command | What it does |
 |---|---|
 | `pip install -r requirements-dev.txt` | Installs app + test dependencies (run again after new packages are added) |

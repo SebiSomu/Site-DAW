@@ -349,7 +349,7 @@ Free services used: Azure for Students, Let's Encrypt, Stripe test mode, Cloudfl
 | 3. Catalogue ✅ | Product API + pages, filters, search, product detail, SEO component | 2.02, 2.04, 8.01 |
 | 4. UI shell ✅ | Styles (5 CSS files), header/footer, responsive nav, carousel, animations | 4.03, 4.04, 5.01, 5.02 |
 | 5. Cart & orders ✅ | CartStore, AuthStore, login and register pages, route guards, checkout, addresses, order history, cancel, reviews, plain-text sanitizing, Vitest. Orders wait at `Awaiting payment` until phase 6 | 2.02, 3.03, 3.04 |
-| 6. Payments | Stripe Checkout + webhook, success/cancel pages, stock decrement on payment, stock restore and refund when a paid order is cancelled, re-check stock at payment time. Remove the "not switched on yet" note from `OrderPage.svelte` | 8.02 |
+| 6. Payments ✅ | Stripe Checkout + webhook, success/cancel pages, stock decrement on payment, stock restore and refund when a paid order is cancelled, re-check stock at payment time. Remove the "not switched on yet" note from `OrderPage.svelte` | 8.02 |
 | 7. Admin ✅ | Product CRUD, secure image upload pipeline, orders, messages, log viewer | 9.04, 9.05, 10.03 |
 | 8. Hardening | Rate limiting, Turnstile, CSP & headers, XSS sanitizing, `.htaccess` files | 9.02, 9.03, 10.01, 10.02, 10.04, 10.05 |
 | 9. Tests | Full test list §8, coverage report | 6.01 |
@@ -411,12 +411,14 @@ Rubric 8.02: a working online payment system. Do them in order; each ends with t
 - Both return pages are `noindex`. No card data ever touches our pages.
 - Tests: Vitest for the status-polling logic; browser run of the whole flow against the fake.
 
-**6.6 Real Stripe test mode and proof**
+**6.6 Real Stripe test mode and proof ✅**
 
 - Needs from the developer: a Stripe account in test mode, the test keys in `backend/.env`, and the Stripe CLI for `stripe listen --forward-to localhost:5000/api/payments/webhook`.
 - Walk through: card `4242 4242 4242 4242` (order `Paid`, stock down, review form appears), declined card `4000 0000 0000 0002`, abandoned checkout, cancel with refund, resent event (`stripe events resend`).
 - Update `docs/RUBRIC.md` (8.02), `README.md` and the use case UC4; add screenshots of a paid order and of the Stripe dashboard.
 - The live webhook endpoint on the Azure VM is set up in phase 10.
+- Done on 23 November 2026 in a Stripe sandbox with `stripe listen`: order 1 paid with `4242…` (Paid, stock 4 → 2 and 22 → 21, review posted), order 2 left at the Stripe page (stays `Awaiting payment`), order 3 paid then cancelled (refunded, stock restored), the paid event resent with `stripe events resend` (no second `payment_succeeded`, stock unchanged).
+- Found on the way: Stripe no longer accepts `payment_method_types` on a new Checkout Session, so it was removed and card-only is set under Settings → Payment methods; the gateway log now records Stripe's error code and field.
 
 ### Phase 7 subplans
 
@@ -464,6 +466,57 @@ Rubric 9.04, 9.05, 10.03 (uploads) and the admin side of 2.04, 3.04 and 7.01. Ea
 
 - Browser run against the fake gateway: a client is refused `/admin`; a guest sends a contact message; the admin sees it on the dashboard, adds a jar (web address from a Romanian name), has a `.php` file stopped in the browser and a photo with hidden data stopped by the server, uploads a clean photo that then shows in the shop, rejects a bad price, filters orders, moves an order paid → confirmed → shipped, cancels an unpaid one, reads and deletes the message and filters the log. Desktop and phone widths.
 - Found and fixed on the way: the activity log is now written in UTC and the frontend reads times without an offset as UTC, so order and log times agree in the viewer's time zone; form fields no longer stretch to match a taller neighbour.
+
+### Phase 8 subplans
+
+Rubric 9.02, 9.04, 9.05 (Apache side), 10.01, 10.02, 10.04, 10.05. Already done and only re-checked here: 9.01 CSRF, 9.03 SQL injection, the upload pipeline (7.1). Each step ends with its tests green and can be its own commit. 8.1 to 8.3 need no outside account; 8.2 uses Cloudflare's public test keys until real ones are added.
+
+**Decisions**
+
+- **Flask is the source of truth for limits and CAPTCHA**; Apache only adds what Flask cannot see (static files, request size before Python runs).
+- **One CSP, written once.** The policy lives in `backend/app/security/headers.py`; the root `.htaccess` carries the same string, and a test fails if the two drift apart.
+- **Rate limits are counted in memory** (`memory://`). The VM runs one mod_wsgi process, so counts are exact; more processes would need Redis, which is out of scope.
+- **The Stripe webhook is exempt from the rate limit** as it is from CSRF: Stripe retries in bursts, and the signature already authenticates it.
+- **CAPTCHA tokens are single use.** The widget is reset after every failed submit, so a wrong password never leaves the form stuck.
+
+**8.1 Rate limiting ✅**
+
+- Add `Flask-Limiter`; `limiter` in `extensions.py`, key = client IP, `100 per minute` as an application-wide limit (`RATELIMIT_APPLICATION`; Flask-Limiter's "default" limit is counted per route, which would allow 100 a minute on every route), plus `5 per minute` on `POST /api/auth/login`, `POST /api/auth/register` and `POST /api/contact`, which also count toward the 100. Webhook exempt from both.
+- `429` goes through the central handlers as `{"error": "Too many requests. Try again in N seconds."}` with `Retry-After`; logged as `rate_limited` with the route.
+- CSRF failures were already logged as `csrf_rejected` (plan §7, 7.01).
+- `TestingConfig` switches limits off; the rate-limit tests switch them on for one app.
+- Frontend: `ApiClient` reads `Retry-After` and shows the wait time.
+- Tests: 101st request in a minute is 429 with `Retry-After` (§8 item 18), 6th login is 429, webhook is never limited, log line written; Vitest for the 429 message.
+
+**8.2 CAPTCHA (Cloudflare Turnstile)**
+
+- `CaptchaVerifier` ABC with `TurnstileVerifier` (server-side call to `siteverify` with the secret and the client IP, short timeout) and `FakeVerifier` (tests); chosen by config like the payment gateway.
+- `TURNSTILE_SECRET_KEY` in config and `.env.example`, `VITE_TURNSTILE_SITE_KEY` for the frontend; production refuses to start without the secret; development defaults to Cloudflare's always-pass test keys.
+- Register, login and contact require `captcha_token`; checked before anything else. Missing or invalid is `400` with a clear message, logged as `captcha_failed`; Cloudflare unreachable is `503`, logged, never a silent pass.
+- `Turnstile.svelte` loads the script on demand, renders the widget with a label, exposes the token to the form and resets after a failed submit; used on `/login`, `/register` and `/contact`.
+- Tests: each of the three routes rejects a missing or bad token and accepts a good one; verifier error maps to 503; the real verifier sends the secret and IP (HTTP call faked).
+
+**8.3 Security headers and CSP**
+
+- `SecurityHeaders` (`after_request`) on every Flask response: `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera, microphone, geolocation, payment off), `Cross-Origin-Opener-Policy: same-origin`, `Strict-Transport-Security` (production only, `max-age=31536000; includeSubDomains`); the `Server` header reduced to a plain name.
+- Site CSP: `default-src 'self'`; scripts and frames also from `https://challenges.cloudflare.com` (Turnstile); `img-src 'self' data:`; `object-src 'none'`; `base-uri 'self'`; `form-action 'self'`; `frame-ancestors 'none'`; `upgrade-insecure-requests`. `style-src` allows `'unsafe-inline'` only if Svelte's transitions and `style:` attributes need it; check and remove if possible. JSON responses get `default-src 'none'; frame-ancestors 'none'`.
+- Vite dev and preview send the same headers, so CSP violations show up locally, not only on the VM.
+- XSS re-check: contact message and admin product text with `<script>` come back as text (§8 item 17); no `{@html}` anywhere.
+- Tests: every header present on an API response, HSTS only in production, CSP has no `unsafe-eval` and no `*`.
+
+**8.4 `.htaccess` files and Apache config**
+
+- `public/.htaccess` (copied into `dist/`): SPA fallback that leaves real files, `/api`, `/uploads`, `/robots.txt` and `/sitemap.xml` alone; `Options -Indexes`; deny dotfiles except `/.well-known/` (Let's Encrypt); deny `*.log *.db *.sqlite *.py *.bak *.ini *.env`; the 8.3 headers; `LimitRequestBody 12648448` (same 12 MB + 64 KB as Flask).
+- `backend/uploads/.htaccess`: only names matching `^[0-9a-f]{32}\.webp$`, `ForceType image/webp`, `nosniff`, `RemoveHandler`/`SetHandler none`, `php_flag engine off`, no listing.
+- `deploy/apache/`: vhost draft (`AllowOverride All`, `WSGIScriptAlias /api`, `Alias /uploads`) and `security.conf` (`ServerTokens Prod`, `ServerSignature Off`, `TraceEnable Off`, `Header unset X-Powered-By`). Used for real in phase 10.
+- CI job: start Apache in the GitHub Actions runner with the built `dist/` and the two `.htaccess` files, then `deploy/check-apache.sh` curls `/.env`, `/.git/config`, `/logs/`, `/x.db`, `/uploads/x.php`, `/uploads/` (403 or 404), a deep SPA route (200), a 13 MB POST (413), and checks the headers.
+- Test: the CSP in `.htaccess` equals the one in `headers.py`.
+
+**8.5 Docs and browser check**
+
+- Browser run: no CSP violation in the console on any page (shop, checkout redirect to Stripe, admin, photo upload); Turnstile works on the three forms at phone and desktop width; the 6th fast login shows the wait message.
+- `deploy/security-demo.sh`: the curl proofs for the README (CSRF 400, 429 after 100, 413, bad extension, headers).
+- Update `docs/RUBRIC.md` (9.02, 9.04, 9.05, 10.01, 10.02, 10.04, 10.05), `README.md` (new settings, Turnstile keys) and the §12 checklist. Security Headers grade A screenshot waits for the live site in phase 10.
 
 ---
 

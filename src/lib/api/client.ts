@@ -2,14 +2,37 @@ import type { QueryParams } from './types'
 
 const UNREACHABLE = 'We could not reach the shop. Check your connection and try again.'
 const UNEXPECTED = 'Something went wrong. Please try again later.'
+const TOO_MANY_REQUESTS = 429
+
+export function waitText(seconds: number | null): string {
+  if (seconds === null) return 'a moment'
+  return seconds === 1 ? '1 second' : `${seconds} seconds`
+}
+
+function parseRetryAfter(header: string | null): number | null {
+  if (header === null || !/^\d+$/.test(header.trim())) return null
+  return Math.max(1, Number(header))
+}
+
+function failureMessage(status: number, error: unknown, retryAfterSeconds: number | null): string {
+  if (typeof error === 'string' && error) return error
+  if (status === TOO_MANY_REQUESTS) return `Too many requests. Please try again in ${waitText(retryAfterSeconds)}.`
+  return UNEXPECTED
+}
 
 export class ApiError extends Error {
   readonly status: number
+  readonly retryAfterSeconds: number | null
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, retryAfterSeconds: number | null = null) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.retryAfterSeconds = retryAfterSeconds
+  }
+
+  get isRateLimited(): boolean {
+    return this.status === TOO_MANY_REQUESTS
   }
 }
 
@@ -85,7 +108,10 @@ export class ApiClient {
       throw new ApiError(UNREACHABLE, 0)
     }
     const body = await response.json().catch(() => null)
-    if (!response.ok) throw new ApiError(body?.error ?? UNEXPECTED, response.status)
+    if (!response.ok) {
+      const retryAfter = parseRetryAfter(response.headers.get('Retry-After'))
+      throw new ApiError(failureMessage(response.status, body?.error, retryAfter), response.status, retryAfter)
+    }
     return body as T
   }
 }
