@@ -1,6 +1,7 @@
 <script lang="ts">
   import { errorMessage } from '../lib/api/client'
   import Seo from '../lib/components/Seo.svelte'
+  import Turnstile from '../lib/components/Turnstile.svelte'
   import { loginHref, safeNextPath } from '../lib/redirects'
   import { router } from '../lib/router/router.svelte'
   import { auth } from '../lib/stores/auth.svelte'
@@ -11,6 +12,8 @@
   let phone = $state('')
   let password = $state('')
   let busy = $state(false)
+  let captchaToken = $state('')
+  let captcha: Turnstile
   let error = $state('')
 
   const next = $derived(safeNextPath(router.url.searchParams.get('next')))
@@ -24,9 +27,10 @@
     busy = true
     error = ''
     try {
-      await auth.register({ first_name, last_name, email, password, phone: phone.trim() || undefined })
+      await auth.register({ first_name, last_name, email, password, phone: phone.trim() || undefined }, captchaToken)
     } catch (caught) {
       error = errorMessage(caught)
+      captcha.reset()
     } finally {
       busy = false
     }
@@ -61,7 +65,8 @@
     {#if error}
       <p class="form-error field-wide" role="alert">{error}</p>
     {/if}
-    <p class="field-wide"><button class="button" type="submit" disabled={busy}>Create my account</button></p>
+    <Turnstile bind:this={captcha} bind:token={captchaToken} />
+    <p class="field-wide"><button class="button" type="submit" disabled={busy || !captchaToken}>Create my account</button></p>
   </form>
   <p>Already have an account? <a href={loginHref(next)}>Log in</a></p>
 </section>

@@ -29,6 +29,8 @@ PRODUCTION_SETTINGS = {
     "STRIPE_SECRET_KEY": "sk_test_key",
     "STRIPE_WEBHOOK_SECRET": WEBHOOK_SECRET,
     "SITE_URL": SITE_URL,
+    "TURNSTILE_SITE_KEY": "site-key",
+    "TURNSTILE_SECRET_KEY": "secret-key",
 }
 SESSION_URL = "https://checkout.stripe.com/c/pay/cs_test_1"
 

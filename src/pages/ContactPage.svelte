@@ -1,6 +1,8 @@
 <script lang="ts">
   import { api, errorMessage } from '../lib/api/client'
+  import { captchaHeaders } from '../lib/captcha'
   import Seo from '../lib/components/Seo.svelte'
+  import Turnstile from '../lib/components/Turnstile.svelte'
   import { auth } from '../lib/stores/auth.svelte'
 
   let name = $state('')
@@ -8,6 +10,8 @@
   let subject = $state('')
   let message = $state('')
   let busy = $state(false)
+  let captchaToken = $state('')
+  let captcha: Turnstile
   let error = $state('')
   let sent = $state(false)
 
@@ -22,12 +26,14 @@
     busy = true
     error = ''
     try {
-      await api.post('/contact', { name, email, subject, message })
+      await api.post('/contact', { name, email, subject, message }, captchaHeaders(captchaToken))
       sent = true
       subject = ''
       message = ''
+      captcha.reset()
     } catch (caught) {
       error = errorMessage(caught)
+      captcha.reset()
     } finally {
       busy = false
     }
@@ -71,7 +77,8 @@
     {#if error}
       <p class="form-error field-wide" role="alert">{error}</p>
     {/if}
-    <p class="field-wide"><button class="button" type="submit" disabled={busy}>Send message</button></p>
+    <Turnstile bind:this={captcha} bind:token={captchaToken} />
+    <p class="field-wide"><button class="button" type="submit" disabled={busy || !captchaToken}>Send message</button></p>
   </form>
 </section>
 

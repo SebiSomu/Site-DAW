@@ -1,6 +1,7 @@
 <script lang="ts">
   import { errorMessage } from '../lib/api/client'
   import Seo from '../lib/components/Seo.svelte'
+  import Turnstile from '../lib/components/Turnstile.svelte'
   import { safeNextPath } from '../lib/redirects'
   import { router } from '../lib/router/router.svelte'
   import { auth } from '../lib/stores/auth.svelte'
@@ -8,6 +9,8 @@
   let email = $state('')
   let password = $state('')
   let busy = $state(false)
+  let captchaToken = $state('')
+  let captcha: Turnstile
   let error = $state('')
 
   const next = $derived(safeNextPath(router.url.searchParams.get('next')))
@@ -21,9 +24,10 @@
     busy = true
     error = ''
     try {
-      await auth.login({ email, password })
+      await auth.login({ email, password }, captchaToken)
     } catch (caught) {
       error = errorMessage(caught)
+      captcha.reset()
     } finally {
       busy = false
     }
@@ -46,7 +50,8 @@
     {#if error}
       <p class="form-error" role="alert">{error}</p>
     {/if}
-    <p><button class="button" type="submit" disabled={busy}>Log in</button></p>
+    <Turnstile bind:this={captcha} bind:token={captchaToken} />
+    <p><button class="button" type="submit" disabled={busy || !captchaToken}>Log in</button></p>
   </form>
   <p>New here? <a href={`/register?next=${encodeURIComponent(next)}`}>Create an account</a></p>
 </section>

@@ -3,6 +3,8 @@ import os
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 FORM_OVERHEAD_BYTES = 64 * 1024
+TURNSTILE_TEST_SITE_KEY = "1x00000000000000000000AA"
+TURNSTILE_TEST_SECRET_KEY = "1x0000000000000000000000000000000AA"
 
 
 class BaseConfig:
@@ -24,6 +26,9 @@ class BaseConfig:
     RATELIMIT_APPLICATION = "100 per minute"
     RATELIMIT_STORAGE_URI = "memory://"
     RATELIMIT_HEADERS_ENABLED = False
+    CAPTCHA_VERIFIER = "turnstile"
+    TURNSTILE_SITE_KEY = os.environ.get("TURNSTILE_SITE_KEY", "")
+    TURNSTILE_SECRET_KEY = os.environ.get("TURNSTILE_SECRET_KEY", "")
     PAYMENT_GATEWAY = "stripe"
     STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
     STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
@@ -36,6 +41,8 @@ class BaseConfig:
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
     SITE_URL = os.environ.get("SITE_URL") or "http://localhost:5173"
+    TURNSTILE_SITE_KEY = os.environ.get("TURNSTILE_SITE_KEY") or TURNSTILE_TEST_SITE_KEY
+    TURNSTILE_SECRET_KEY = os.environ.get("TURNSTILE_SECRET_KEY") or TURNSTILE_TEST_SECRET_KEY
 
 
 class TestingConfig(BaseConfig):
@@ -44,6 +51,7 @@ class TestingConfig(BaseConfig):
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     ADMIN_PASSWORD = "Test-Password-123"
     RATELIMIT_ENABLED = False
+    CAPTCHA_VERIFIER = "fake"
     PAYMENT_GATEWAY = "fake"
     STRIPE_SECRET_KEY = ""
     STRIPE_WEBHOOK_SECRET = ""
@@ -52,7 +60,13 @@ class TestingConfig(BaseConfig):
 
 class ProductionConfig(BaseConfig):
     SESSION_COOKIE_SECURE = True
-    REQUIRED_SETTINGS = ("STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "SITE_URL")
+    REQUIRED_SETTINGS = (
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "SITE_URL",
+        "TURNSTILE_SITE_KEY",
+        "TURNSTILE_SECRET_KEY",
+    )
 
 
 CONFIGS: dict[str, type[BaseConfig]] = {

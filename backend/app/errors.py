@@ -57,6 +57,16 @@ class PaymentError(AppError):
     message = "We could not reach the payment service. Please try again in a moment."
 
 
+class CaptchaError(AppError):
+    status_code = 400
+    message = "Please complete the security check and try again."
+
+
+class CaptchaUnavailableError(AppError):
+    status_code = 503
+    message = "We could not run the security check just now. Please try again in a moment."
+
+
 class UploadError(AppError):
     status_code = 400
     message = "This photo could not be uploaded."

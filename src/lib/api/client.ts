@@ -53,8 +53,8 @@ export class ApiClient {
     return this.request<T>(search ? `${path}?${search}` : path)
   }
 
-  post<T = unknown>(path: string, body?: unknown): Promise<T> {
-    return this.write<T>('POST', path, body)
+  post<T = unknown>(path: string, body?: unknown, headers: Record<string, string> = {}): Promise<T> {
+    return this.write<T>('POST', path, body, headers)
   }
 
   put<T = unknown>(path: string, body?: unknown): Promise<T> {
@@ -73,9 +73,9 @@ export class ApiClient {
     return this.send<T>('POST', path, form)
   }
 
-  private write<T>(method: string, path: string, body?: unknown): Promise<T> {
+  private write<T>(method: string, path: string, body?: unknown, headers: Record<string, string> = {}): Promise<T> {
     const json = body === undefined ? undefined : JSON.stringify(body)
-    return this.send<T>(method, path, json, { 'Content-Type': 'application/json' })
+    return this.send<T>(method, path, json, { ...headers, 'Content-Type': 'application/json' })
   }
 
   private async send<T>(method: string, path: string, body?: string | FormData, headers: Record<string, string> = {}): Promise<T> {

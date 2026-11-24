@@ -1,4 +1,5 @@
 import { api } from '../api/client'
+import { captchaHeaders } from '../captcha'
 import type { LoginDetails, RegisterDetails, User } from '../api/types'
 
 export class AuthStore {
@@ -16,12 +17,12 @@ export class AuthStore {
     }
   }
 
-  async login(details: LoginDetails): Promise<void> {
-    this.user = (await api.post<{ user: User }>('/auth/login', details)).user
+  async login(details: LoginDetails, captchaToken: string): Promise<void> {
+    this.user = (await api.post<{ user: User }>('/auth/login', details, captchaHeaders(captchaToken))).user
   }
 
-  async register(details: RegisterDetails): Promise<void> {
-    this.user = (await api.post<{ user: User }>('/auth/register', details)).user
+  async register(details: RegisterDetails, captchaToken: string): Promise<void> {
+    this.user = (await api.post<{ user: User }>('/auth/register', details, captchaHeaders(captchaToken))).user
   }
 
   async logout(): Promise<void> {

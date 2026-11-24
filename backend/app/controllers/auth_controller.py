@@ -3,6 +3,8 @@ from flask_login import current_user, login_required
 from flask_wtf.csrf import generate_csrf
 
 from app.rate_limits import strict_limit
+from app.security import captcha_required
+from app.services.captcha import get_captcha_verifier
 from app.schemas import LoginRequest, RegisterRequest, UserResponse, parse_body
 from app.services.auth_service import AuthService
 
@@ -18,14 +20,21 @@ def csrf_token():
     return jsonify(csrf_token=generate_csrf())
 
 
+@auth_bp.get("/captcha")
+def captcha_settings():
+    return jsonify(site_key=get_captcha_verifier().site_key)
+
+
 @auth_bp.post("/auth/register")
 @strict_limit()
+@captcha_required
 def register():
     return user_json(AuthService().register(parse_body(RegisterRequest))), 201
 
 
 @auth_bp.post("/auth/login")
 @strict_limit()
+@captcha_required
 def login():
     return user_json(AuthService().login(parse_body(LoginRequest)))
 

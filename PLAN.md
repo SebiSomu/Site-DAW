@@ -488,11 +488,11 @@ Rubric 9.02, 9.04, 9.05 (Apache side), 10.01, 10.02, 10.04, 10.05. Already done 
 - Frontend: `ApiClient` reads `Retry-After` and shows the wait time.
 - Tests: 101st request in a minute is 429 with `Retry-After` (§8 item 18), 6th login is 429, webhook is never limited, log line written; Vitest for the 429 message.
 
-**8.2 CAPTCHA (Cloudflare Turnstile)**
+**8.2 CAPTCHA (Cloudflare Turnstile) ✅**
 
 - `CaptchaVerifier` ABC with `TurnstileVerifier` (server-side call to `siteverify` with the secret and the client IP, short timeout) and `FakeVerifier` (tests); chosen by config like the payment gateway.
-- `TURNSTILE_SECRET_KEY` in config and `.env.example`, `VITE_TURNSTILE_SITE_KEY` for the frontend; production refuses to start without the secret; development defaults to Cloudflare's always-pass test keys.
-- Register, login and contact require `captcha_token`; checked before anything else. Missing or invalid is `400` with a clear message, logged as `captcha_failed`; Cloudflare unreachable is `503`, logged, never a silent pass.
+- `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` in config and `.env.example`; the frontend reads the site key from `GET /api/captcha`, so both keys live in one `.env` and the build does not depend on them. Production refuses to start without them; development defaults to Cloudflare's always-pass test keys.
+- Register, login and contact carry the token in an `X-Captcha-Token` header, checked by a `captcha_required` decorator after CSRF and the rate limit and before the body is parsed, so the request schemas stay unchanged. Missing, too long or invalid is `400` with a clear message, logged as `captcha_failed` with the reason; Cloudflare unreachable or a wrong secret is `503`, never a silent pass.
 - `Turnstile.svelte` loads the script on demand, renders the widget with a label, exposes the token to the form and resets after a failed submit; used on `/login`, `/register` and `/contact`.
 - Tests: each of the three routes rejects a missing or bad token and accepts a good one; verifier error maps to 503; the real verifier sends the secret and IP (HTTP call faked).
 

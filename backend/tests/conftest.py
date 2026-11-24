@@ -3,12 +3,18 @@ import pytest
 from app import create_app
 from app.extensions import db as database
 from app.seed import DatabaseSeeder
+from app.security import CAPTCHA_HEADER
+from app.services.captcha import FAKE_CAPTCHA_TOKEN
 
 
 class ApiClient:
     def __init__(self, client) -> None:
         self.client = client
         self.csrf_token = self.get("/api/csrf").get_json()["csrf_token"]
+
+    @property
+    def write_headers(self) -> dict[str, str]:
+        return {"X-CSRFToken": self.csrf_token, CAPTCHA_HEADER: FAKE_CAPTCHA_TOKEN}
 
     def _in_own_context(self, send, *args, **kwargs):
         with self.client.application.app_context():
@@ -18,25 +24,25 @@ class ApiClient:
         return self._in_own_context(self.client.get, url)
 
     def post(self, url: str, json: dict | None = None):
-        return self._in_own_context(self.client.post, url, json=json, headers={"X-CSRFToken": self.csrf_token})
+        return self._in_own_context(self.client.post, url, json=json, headers=self.write_headers)
 
     def put(self, url: str, json: dict | None = None):
-        return self._in_own_context(self.client.put, url, json=json, headers={"X-CSRFToken": self.csrf_token})
+        return self._in_own_context(self.client.put, url, json=json, headers=self.write_headers)
 
     def patch(self, url: str, json: dict | None = None):
-        return self._in_own_context(self.client.patch, url, json=json, headers={"X-CSRFToken": self.csrf_token})
+        return self._in_own_context(self.client.patch, url, json=json, headers=self.write_headers)
 
     def post_form(self, url: str, data: dict):
         return self._in_own_context(
             self.client.post,
             url,
             data=data,
-            headers={"X-CSRFToken": self.csrf_token},
+            headers=self.write_headers,
             content_type="multipart/form-data",
         )
 
     def delete(self, url: str):
-        return self._in_own_context(self.client.delete, url, headers={"X-CSRFToken": self.csrf_token})
+        return self._in_own_context(self.client.delete, url, headers=self.write_headers)
 
 
 @pytest.fixture()

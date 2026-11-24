@@ -34,6 +34,17 @@ describe('ApiClient', () => {
     expect(fetchMock.mock.calls[2][1].method).toBe('DELETE')
   })
 
+  it('adds extra headers to a POST without losing the CSRF token', async () => {
+    const fetchMock = stubFetch(jsonResponse({ csrf_token: 'token-1' }), jsonResponse({}))
+
+    await new ApiClient().post('/contact', { name: 'Ana' }, { 'X-Captcha-Token': 'captcha-1' })
+
+    const headers = fetchMock.mock.calls[1][1].headers
+    expect(headers['X-Captcha-Token']).toBe('captcha-1')
+    expect(headers['X-CSRFToken']).toBe('token-1')
+    expect(headers['Content-Type']).toBe('application/json')
+  })
+
   it('sends PUT and PATCH as JSON with the token', async () => {
     const fetchMock = stubFetch(jsonResponse({ csrf_token: 'token-1' }), jsonResponse({}), jsonResponse({}))
     const client = new ApiClient()
