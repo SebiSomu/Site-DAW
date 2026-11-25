@@ -133,7 +133,7 @@
           <h2>Going to</h2>
           <p>{order.ships_to}</p>
           {#if order.notes}
-            <h2>Note for Mum</h2>
+            <h2>Note for Mama</h2>
             <p class="note">{order.notes}</p>
           {/if}
         </div>

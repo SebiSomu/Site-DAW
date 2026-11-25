@@ -84,7 +84,7 @@
 <section
   class="book"
   aria-roledescription="carousel"
-  aria-label="Mum's recipe book"
+  aria-label="Mama's recipe book"
   {@attach bookEvents}
 >
   <div

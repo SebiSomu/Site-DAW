@@ -123,7 +123,7 @@
             <p class="status" aria-live="polite">Counting the jars…</p>
           {/if}
           <label class="field">
-            <span>A note for Mum <span class="field-hint">(optional)</span></span>
+            <span>A note for Mama <span class="field-hint">(optional)</span></span>
             <textarea rows="3" maxlength="500" bind:value={notes}></textarea>
           </label>
           {#if error}

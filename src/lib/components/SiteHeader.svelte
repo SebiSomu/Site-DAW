@@ -34,11 +34,11 @@
         <circle class="lid-twine" cx="40" cy="40" r="26" />
         <path class="lid-bow" d="M62 30c7-6 13-2 9 4M62 30c5-8 0-12-5-7" />
         <circle class="lid-label" cx="40" cy="40" r="19" />
-        <text class="lid-text" x="40" y="46" text-anchor="middle">Mum's</text>
+        <text class="lid-text" x="40" y="46" text-anchor="middle" textLength="34" lengthAdjust="spacingAndGlyphs">Mama's</text>
       </svg>
       <span class="brand-words">
-        <span class="brand-top">Mum's</span>
-        <span class="brand-name">Homemade<br />Jams</span>
+        <span class="brand-top">Mama's</span>
+        <span class="brand-name">Pantry</span>
       </span>
     </a>
     <a class="cart-link" href="/cart" aria-current={here === '/cart' ? 'page' : undefined}>

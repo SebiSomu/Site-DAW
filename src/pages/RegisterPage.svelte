@@ -37,7 +37,7 @@
   }
 </script>
 
-<Seo title="Create an account" description="Create an account to order Mum's homemade jams and follow your orders." noindex />
+<Seo title="Create an account" description="Create an account to order Mama's homemade jams and follow your orders." noindex />
 
 <section class="page-stack narrow">
   <h1 class="page-title">Create an account</h1>

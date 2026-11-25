@@ -20,7 +20,7 @@
   })
 </script>
 
-<Seo title="My orders" description="Every order you have placed with Mum's Homemade Jams." noindex />
+<Seo title="My orders" description="Every order you have placed with Mama's Pantry." noindex />
 
 <AuthGate>
   <section class="page-stack">

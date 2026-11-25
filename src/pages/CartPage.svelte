@@ -39,7 +39,7 @@
   })
 </script>
 
-<Seo title="Your cart" description="The jars you have picked from Mum's pantry." noindex />
+<Seo title="Your cart" description="The jars you have picked from Mama's Pantry." noindex />
 
 <section class="page-stack">
   <h1 class="page-title">Your cart</h1>

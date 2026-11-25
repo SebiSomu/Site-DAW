@@ -9,7 +9,7 @@
     noindex?: boolean
   }
 
-  const SITE_NAME = "Mum's Homemade Jams"
+  const SITE_NAME = "Mama's Pantry"
 
   let { title, description, path, image = '/images/jar-placeholder.svg', noindex = false }: Props = $props()
 

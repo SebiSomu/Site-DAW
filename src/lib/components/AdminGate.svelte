@@ -16,7 +16,7 @@
   {:else}
     <section class="page-stack narrow">
       <h1 class="page-title">Only for the kitchen</h1>
-      <p class="status">This part of the shop is for Mum and the people who help her run it.</p>
+      <p class="status">This part of the shop is for Mama and the people who help her run it.</p>
       <p><a class="button" href="/">Back to the shop</a></p>
     </section>
   {/if}

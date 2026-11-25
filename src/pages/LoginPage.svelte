@@ -34,7 +34,7 @@
   }
 </script>
 
-<Seo title="Log in" description="Log in to your account to check out and follow your orders of Mum's homemade jams." noindex />
+<Seo title="Log in" description="Log in to your account to check out and follow your orders of Mama's homemade jams." noindex />
 
 <section class="page-stack narrow">
   <h1 class="page-title">Log in</h1>

@@ -178,7 +178,7 @@
         {/each}
       </ul>
     {:else}
-      <p class="status">No reviews yet. Be the first to tell Mum what you think.</p>
+      <p class="status">No reviews yet. Be the first to tell Mama what you think.</p>
     {/if}
   </section>
 {:else if error}

@@ -14,7 +14,7 @@
 
   const PEOPLE = [
     {
-      name: 'Mum',
+      name: 'Mama',
       title: 'Head of the copper pot',
       duties:
         'Picks, pits, stirs and tastes. She has the final word on whether a batch is good enough to sell, and the answer is not always yes.',
@@ -23,7 +23,7 @@
       name: 'Her son',
       title: 'Head of anything with a screen',
       duties:
-        "Built this shop, writes the labels when Mum's handwriting gets too enthusiastic, and carries the crates up from the cellar.",
+        "Built this shop, writes the labels when Mama's handwriting gets too enthusiastic, and carries the crates up from the cellar.",
     },
     {
       name: 'The neighbours',
@@ -36,7 +36,7 @@
     {
       question: 'Is it really all homemade?',
       answer:
-        "Every jar is cooked in Mum's kitchen, in small batches, and filled by hand. That is also why some jars sell out and only come back when their fruit does.",
+        "Every jar is cooked in Mama's kitchen, in small batches, and filled by hand. That is also why some jars sell out and only come back when their fruit does.",
     },
     {
       question: 'What goes into the jars?',
@@ -51,14 +51,14 @@
     {
       question: 'How should I keep an opened jar?',
       answer:
-        'In the fridge with the lid on, and always with a clean spoon. Mum would also like you to know that it tastes best on warm bread.',
+        'In the fridge with the lid on, and always with a clean spoon. Mama would also like you to know that it tastes best on warm bread.',
     },
   ]
 </script>
 
 <Seo
   title="About us"
-  description="Meet the family behind Mum's Homemade Jams: a copper pot, a family orchard, an old recipe notebook and a year that follows the fruit."
+  description="Meet the family behind Mama's Pantry: a copper pot, a family orchard, an old recipe notebook and a year that follows the fruit."
   path="/about"
 />
 
@@ -73,7 +73,7 @@
       </p>
       <p>
         Every jar on these shelves starts the same way: fruit picked when it is ready and not a day before, washed by
-        hand, and one copper pot. Mum stirs, tastes, waits and tastes again, and nothing goes into a jar until she is
+        hand, and one copper pot. Mama stirs, tastes, waits and tastes again, and nothing goes into a jar until she is
         happy with it. It is an afternoon nobody is allowed to rush.
       </p>
       <p>
@@ -81,7 +81,7 @@
         sorting the fruit to writing the date on the lid. We cook in small batches, we take no shortcuts, and nothing
         leaves our kitchen that we would not happily put on our own breakfast table.
       </p>
-      <p class="signoff">With love and a lot of patience, Mum and her son</p>
+      <p class="signoff">With love and a lot of patience, Mama and her son</p>
     </div>
     <HarvestCalendar />
   </section>
@@ -105,7 +105,7 @@
       <article class="paper recipe-card reveal reveal-late">
         <span class="tape" aria-hidden="true"></span>
         <p>
-          Mum's recipes live in an old school notebook with a blue cover, soft at the corners and stained in places you
+          Mama's recipes live in an old school notebook with a blue cover, soft at the corners and stained in places you
           can still smell. The first pages are in her mother's handwriting. The rest are hers.
         </p>
         <p>
@@ -123,7 +123,7 @@
   <section class="year" aria-labelledby="year-title">
     <div class="section-head reveal">
       <h2 id="year-title">A year in the copper pot</h2>
-      <p>Nothing here is made out of season, so the shop follows the calendar. This is roughly how Mum's year goes.</p>
+      <p>Nothing here is made out of season, so the shop follows the calendar. This is roughly how Mama's year goes.</p>
     </div>
     <ol class="seasons">
       {#each SEASONS as season (season.id)}
@@ -145,7 +145,7 @@
 
   <section class="split rules" aria-labelledby="rules-title">
     <div class="rules-text">
-      <h2 id="rules-title" class="reveal">Mum's kitchen rules</h2>
+      <h2 id="rules-title" class="reveal">Mama's kitchen rules</h2>
       <p class="rules-quote reveal">Made with love, in a copper pot, the old-fashioned way.</p>
       <p class="reveal">
         They are pinned above the stove. Nobody remembers writing them down, and nobody has ever been allowed to break

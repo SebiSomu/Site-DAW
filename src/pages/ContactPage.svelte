@@ -42,21 +42,21 @@
 
 <Seo
   title="Contact us"
-  description="Write to Mum's Homemade Jams in Brașov about an order, a big batch for a wedding or anything else."
+  description="Write to Mama's Pantry in Brașov about an order, a big batch for a wedding or anything else."
 />
 
 <section class="page-stack contact">
   <div class="contact-text">
     <h1 class="page-title">Write to us</h1>
     <p class="lede">
-      A question about an order, a batch for a wedding or a christening, or just a recipe you want to share? Mum reads
+      A question about an order, a batch for a wedding or a christening, or just a recipe you want to share? Mama reads
       every message herself, usually in the evening, and answers within two days.
     </p>
   </div>
 
   <form class="paper sheet form-grid" onsubmit={send}>
     {#if sent}
-      <p class="form-note field-wide" role="status">Thank you! Your message is on its way to Mum.</p>
+      <p class="form-note field-wide" role="status">Thank you! Your message is on its way to Mama.</p>
     {/if}
     <label class="field">
       Your name

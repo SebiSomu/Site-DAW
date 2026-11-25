@@ -35,7 +35,7 @@
   const heading = $derived(activeCategory?.name ?? 'All our jars')
   const description = $derived(
     activeCategory?.description ??
-      'Browse every jam, preserve and fruit butter from Mum’s kitchen. Filter by category, search and sort by price.',
+      'Browse every jam, preserve and fruit butter from Mama’s kitchen. Filter by category, search and sort by price.',
   )
 
   $effect(() => {

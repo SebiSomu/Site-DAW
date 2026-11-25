@@ -39,7 +39,7 @@
 </script>
 
 <form class="paper review-form" onsubmit={post}>
-  <h3>Tell Mum what you think</h3>
+  <h3>Tell Mama what you think</h3>
   <fieldset>
     <legend>Your rating</legend>
     <div class="rating">

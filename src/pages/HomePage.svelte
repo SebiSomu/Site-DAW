@@ -20,17 +20,17 @@
 </script>
 
 <Seo
-  title="Mum's Homemade Jams"
-  description="Homemade jams, preserves and fruit butters made from Mum's recipes. Order jars with an old-fashioned taste online."
+  title="Mama's Pantry"
+  description="Homemade jams, preserves and fruit butters made from Mama's recipes. Order jars with an old-fashioned taste online."
   path="/"
 />
 
 <div class="stack">
   <section class="split hero" aria-labelledby="hero-title">
     <div class="hero-text">
-      <h1 id="hero-title">Mum's Homemade Jams</h1>
+      <h1 id="hero-title">Mama's Pantry</h1>
       <p class="hero-line">
-        Jams, preserves and fruit butters from Mum's own recipes, cooked slowly in small batches and sold by the jar.
+        Jams, preserves and fruit butters from Mama's own recipes, cooked slowly in small batches and sold by the jar.
       </p>
       <p><a class="button" href="/products">Browse all jars</a></p>
     </div>
@@ -57,9 +57,9 @@
 
   <section class="kitchen split" aria-labelledby="kitchen-title">
     <div class="kitchen-text">
-      <h2 id="kitchen-title" class="reveal">How Mum fills a jar</h2>
+      <h2 id="kitchen-title" class="reveal">How Mama fills a jar</h2>
       <p class="kitchen-quote reveal">Made with love, in a copper pot, the old-fashioned way.</p>
-      <article class="paper recipe-card reveal reveal-late" aria-label="Mum's method">
+      <article class="paper recipe-card reveal reveal-late" aria-label="Mama's method">
         <span class="tape" aria-hidden="true"></span>
         <ul class="hand-list">
           <li>Fruit only while it is in season, picked ripe.</li>

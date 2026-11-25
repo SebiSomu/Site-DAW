@@ -66,7 +66,7 @@
       <div class="paper sheet" role="status">
         <p class="paid-stamp">Paid</p>
         <p>
-          Your payment of <strong>{formatPrice(order.total_cents)}</strong> went through and Mum has your order. She will
+          Your payment of <strong>{formatPrice(order.total_cents)}</strong> went through and Mama has your order. She will
           wrap {order.jar_count === 1 ? 'the jar in gingham and send it' : `the ${order.jar_count} jars in gingham and send them`}
           to {order.ships_to}.
         </p>

@@ -7,7 +7,7 @@
 <footer class="site-footer">
   <div class="gingham" aria-hidden="true"></div>
   <div class="footer-inner page-width">
-    <p class="footer-name">Mum's Homemade Jams</p>
+    <p class="footer-name">Mama's Pantry</p>
     <div class="footer-columns">
       <section aria-labelledby="footer-shop">
         <h2 id="footer-shop">The pantry</h2>
@@ -35,6 +35,6 @@
         </p>
       </section>
     </div>
-    <p class="footer-small">© {year} Mum's Homemade Jams</p>
+    <p class="footer-small">© {year} Mama's Pantry</p>
   </div>
 </footer>
