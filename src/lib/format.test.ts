@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatPrice, formatStars, serverTime } from './format'
+import { formatDate, formatPrice, formatStars, serverTime } from './format'
 import { loginHref, safeNextPath } from './redirects'
 
 describe('formatPrice', () => {
@@ -47,3 +47,10 @@ describe('loginHref', () => {
     expect(loginHref('/products?q=a b')).toBe('/login?next=%2Fproducts%3Fq%3Da%20b')
   })
 })
+
+describe('formatDate', () => {
+  it('writes the day, the month in words and the year', () => {
+    expect(formatDate('2026-11-24T12:00:00')).toMatch(/^2[45] November 2026$/)
+  })
+})
+

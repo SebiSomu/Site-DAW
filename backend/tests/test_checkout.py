@@ -503,3 +503,22 @@ def test_concurrent_duplicate_event_is_stopped_by_the_conditional_status_change(
 
     assert stock_levels(session) == {slug: before[slug] - quantity for slug, quantity in ORDERED.items()}
     assert f"webhook_duplicate | order={order_id}" in activity_log()
+
+
+def test_payment_for_an_order_that_has_moved_on_is_ignored_and_logged(app, order_id, reference, fake, session, activity_log):
+    set_status(order_id, OrderStatusCode.SHIPPED, session)
+    before = stock_levels(session)
+
+    assert send_webhook(app, fake.complete(reference)).status_code == 200
+
+    assert order_status(order_id, session) == OrderStatusCode.SHIPPED.value
+    assert stock_levels(session) == before
+    assert payment_of(order_id, session).status == PaymentStatus.PENDING.value
+    assert f"webhook_ignored | order={order_id}" in activity_log()
+
+
+def test_expiry_arriving_after_the_payment_changes_nothing(app, order_id, reference, paid, fake, session):
+    assert send_webhook(app, fake.expire_event(reference)).status_code == 200
+
+    assert payment_of(order_id, session).status == PaymentStatus.SUCCEEDED.value
+    assert order_status(order_id, session) == OrderStatusCode.PAID.value

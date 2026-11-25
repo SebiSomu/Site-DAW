@@ -267,3 +267,27 @@ def test_end_markers_are_found_exactly():
     assert (jpeg_end(jpeg), png_end(png), webp_end(webp)) == (len(jpeg), len(png), len(webp))
     assert jpeg_end(b"not a jpeg") is None
     assert png_end(png[:-12]) is None
+
+
+def test_photo_over_40_megapixels_is_refused_before_it_is_decoded(pipeline, activity_log):
+    data = encode(Image.new("1", (8000, 5001)), "PNG")
+
+    with pytest.raises(UploadError, match="40 megapixels"):
+        pipeline.store(UploadCandidate("huge.png", data))
+    assert "reason=format" in activity_log()
+
+
+def test_photo_whose_structure_cannot_be_followed_is_rejected(app, pipeline, monkeypatch, activity_log):
+    monkeypatch.setattr("app.services.uploads.validators.image_end", lambda image_format, data: None)
+
+    with pytest.raises(UploadError, match="not a real photo"):
+        pipeline.store(UploadCandidate("jar.png", encode(picture(), "PNG")))
+    assert "reason=trailing_data" in activity_log()
+    assert stored_files(app) == []
+
+
+def test_deleting_a_photo_that_is_already_gone_is_harmless(app):
+    UploadStorage(app.config["UPLOAD_FOLDER"]).delete("0123456789abcdef0123456789abcdef.webp")
+
+    assert stored_files(app) == []
+

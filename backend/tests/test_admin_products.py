@@ -2,9 +2,11 @@ import io
 import os
 
 import pytest
+from sqlalchemy.exc import IntegrityError
 from PIL import Image
 
 from app.models import Product
+from app.extensions import db
 from app.seed import DEMO_CLIENT_EMAIL, DEMO_CLIENT_PASSWORD
 
 NEW_JAR = {
@@ -285,3 +287,16 @@ def test_admin_removes_a_photo_and_its_file(app, admin_api, created, activity_lo
 def test_unknown_photo_is_404(admin_api):
     assert admin_api.post("/api/admin/images/9999/main").status_code == 404
     assert admin_api.delete("/api/admin/images/9999").status_code == 404
+
+
+def test_a_photo_whose_row_cannot_be_saved_leaves_no_file_behind(app, admin_api, created, monkeypatch, session):
+    def refuse_commit():
+        raise IntegrityError("INSERT INTO product_images", {}, Exception("disk full"))
+
+    monkeypatch.setattr(db.session, "commit", refuse_commit)
+    response = upload(admin_api, created["id"])
+    monkeypatch.undo()
+
+    assert response.status_code == 409
+    assert upload_folder(app) == []
+    assert admin_api.get(f"/api/admin/products/{created['id']}").get_json()["product"]["images"] == []

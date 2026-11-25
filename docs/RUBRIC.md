@@ -67,7 +67,7 @@ Counted with: `grep -rE "^class " backend/app | wc -l`
 
 | # | Criterion | Status | Proof |
 |---|---|:-:|---|
-| 6.01 | ≥5 unit tests | ✅ | 330 pytest tests in `backend/tests/` and 131 Vitest tests in `src/` (`npm test`) |
+| 6.01 | ≥5 unit tests | ✅ | 485 pytest tests in `backend/tests/` (99.7% of lines and branches, CI fails under 98%) and 184 Vitest tests in `src/` (97% of the TypeScript, CI fails under 90%). [`docs/TESTS.md`](TESTS.md) maps every item of the test plan to its tests, and `backend/tests/test_test_plan.py` keeps that map true. Coverage reports: `pytest --cov --cov-report=html`, `npm run coverage`, and the `backend-coverage` / `frontend-coverage` artifacts of every CI run |
 | 6.02 | Git | ✅ | GitHub repo `SebiSomu/Site-DAW` |
 | 6.03 | GitHub Actions CI | 🟡 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml): backend tests + frontend check, tests and build. Done once a run on GitHub is confirmed green (screenshot of the Actions tab) |
 

@@ -73,3 +73,6 @@ desktop.ini
 # ===================== Design checks =====================
 .taste-skill/
 .playwright-mcp/
+
+# Coverage reports
+coverage/

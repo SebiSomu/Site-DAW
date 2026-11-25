@@ -89,6 +89,7 @@ Run these from the project root.
 | `npm run dev` | Starts the dev server at http://localhost:5173 (reloads on every save) |
 | `npm run check` | Type-checks TypeScript and Svelte components |
 | `npm test` | Runs the frontend tests (Vitest) |
+| `npm run coverage` | Runs them with a coverage report in `coverage/index.html`; fails under 90% of lines |
 | `npm run build` | Builds the production version into `dist/` |
 | `npm run preview` | Serves the `dist/` build locally |
 
@@ -112,6 +113,7 @@ To test real payments locally: create a Stripe account and stay in the sandbox; 
 | `flask db downgrade` | Reverts the last migration |
 | `flask run` | Starts the API at http://127.0.0.1:5000 (health check: `/api/health`) |
 | `pytest` | Runs the backend tests |
+| `pytest --cov --cov-report=html` | Runs them with a coverage report in `backend/htmlcov/index.html`; fails under 98% |
 | `deactivate` | Leaves the virtual environment |
 
 To start over with an empty database, delete `backend/instance/jams.db`, then run `flask db upgrade` and `flask seed --demo`.

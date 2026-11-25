@@ -352,7 +352,7 @@ Free services used: Azure for Students, Let's Encrypt, Stripe test mode, Cloudfl
 | 6. Payments ✅ | Stripe Checkout + webhook, success/cancel pages, stock decrement on payment, stock restore and refund when a paid order is cancelled, re-check stock at payment time. Remove the "not switched on yet" note from `OrderPage.svelte` | 8.02 |
 | 7. Admin ✅ | Product CRUD, secure image upload pipeline, orders, messages, log viewer | 9.04, 9.05, 10.03 |
 | 8. Hardening | Rate limiting, Turnstile, CSP & headers, XSS sanitizing, `.htaccess` files | 9.02, 9.03, 10.01, 10.02, 10.04, 10.05 |
-| 9. Tests | Full test list §8, coverage report | 6.01 |
+| 9. Tests ✅ | Full test list §8, coverage report | 6.01 |
 | 10. Deploy | Azure VM + Apache + HTTPS, Stripe webhook live (test mode) | 7.02 |
 | 11. Proof | Lighthouse report, Security Headers screenshot, curl demos, README with rubric checklist | all |
 
@@ -520,6 +520,17 @@ Rubric 9.02, 9.04, 9.05 (Apache side), 10.01, 10.02, 10.04, 10.05. Already done 
 - Browser run: no CSP violation in the console on any page (shop, checkout redirect to Stripe, admin, photo upload); Turnstile works on the three forms at phone and desktop width; the 6th fast login shows the wait message.
 - `deploy/security-demo.sh`: the curl proofs for the README (CSRF 400, 429 after 100, 413, bad extension, headers).
 - Update `docs/RUBRIC.md` (9.02, 9.04, 9.05, 10.01, 10.02, 10.04, 10.05), `README.md` (new settings, Turnstile keys) and the §12 checklist. Security Headers grade A screenshot waits for the live site in phase 10.
+
+### Phase 9 subplan
+
+Rubric 6.01, and 6.03 for the CI part. Done in one pass on 25 November 2026.
+
+- **Traceability.** `docs/TESTS.md` maps every §8 item to the tests that prove it (all 19 were already covered, most by several tests), plus the frontend items and a table of everything beyond §8. `backend/tests/test_test_plan.py` fails if a listed test is renamed or removed, if an item names no test, or if a listed Vitest file is missing.
+- **Coverage.** `pytest-cov` with branch coverage (`backend/.coveragerc`, fails under 98%) and `@vitest/coverage-v8` on `src/**/*.ts` (`vite.config.ts`, fails under 90% of lines and 85% of branches). Svelte pages are covered by the browser runs instead. CI runs both, writes the totals to the run summary and keeps the HTML reports as artifacts.
+- **Gaps closed.** Backend 97.4% → 99.7%: malformed JPEG, PNG and WebP structures (`test_image_markers.py`), the 40-megapixel guard, a photo whose row cannot be saved leaves no file, two admins moving one order, a webhook for an order that has moved on, an expiry after payment, the generic 500 and 409 handlers, the health check's 503, `flask seed`, the real Turnstile transport. Frontend TS 79% → 97%: the router's link handling (`router/router.test.ts`), the auth store, `startPayment` refusing any address that is not Stripe Checkout or this site (`payment-redirect.test.ts`), shelves and seasons. Removed `ReviewRepository.list_for_product`, which nothing used.
+- **Speed.** The seeded database is built once per run and copied into each test's in-memory database with SQLite's backup API; password hashing stays full-strength scrypt. 2 min → about 1 min with coverage, 47 s without.
+- **Found on the way.** A date test that only passed in some time zones; it now passes from UTC−11 to UTC+14.
+- Counts: 485 pytest (58 check `docs/TESTS.md`), 184 Vitest, 46 Apache checks.
 
 ---
 

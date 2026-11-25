@@ -1,3 +1,6 @@
+import sqlite3
+from contextlib import contextmanager
+
 import pytest
 
 from app import create_app
@@ -63,9 +66,37 @@ def session(app):
     return database.session
 
 
+@contextmanager
+def live_sqlite_connection():
+    with database.engine.connect() as connection:
+        yield connection.connection.driver_connection
+
+
+@pytest.fixture(scope="session")
+def seeded_template(tmp_path_factory):
+    folder = tmp_path_factory.mktemp("seeded-template")
+    application = create_app(
+        "testing",
+        {"ACTIVITY_LOG_PATH": str(folder / "activity.log"), "UPLOAD_FOLDER": str(folder / "uploads")},
+    )
+    template = sqlite3.connect(":memory:", check_same_thread=False)
+    with application.app_context():
+        database.create_all()
+        DatabaseSeeder().run(include_demo_client=True)
+        database.session.commit()
+        with live_sqlite_connection() as live:
+            live.backup(template)
+        database.session.remove()
+        database.drop_all()
+    yield template
+    template.close()
+
+
 @pytest.fixture()
-def seeded(app):
-    DatabaseSeeder().run(include_demo_client=True)
+def seeded(app, seeded_template):
+    database.session.remove()
+    with live_sqlite_connection() as live:
+        seeded_template.backup(live)
     return database.session
 
 

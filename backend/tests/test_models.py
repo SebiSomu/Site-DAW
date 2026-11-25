@@ -138,3 +138,17 @@ def test_admin_role_is_detected(seeded, session):
     session.add(client)
     assert admin.is_admin
     assert not client.is_admin
+
+
+def test_user_and_product_helpers(seeded):
+    client = UserRepository().get_by_email(DEMO_CLIENT_EMAIL)
+    jar = ProductRepository().list_all()[0]
+
+    assert client.full_name == f"{client.first_name} {client.last_name}"
+    assert not client.is_admin
+    assert repr(client) == f"<User {DEMO_CLIENT_EMAIL}>"
+    assert repr(client.role) == "<Role client>"
+    jar.stock = 0
+    assert not jar.is_in_stock
+    jar.stock = 3
+    assert jar.is_in_stock

@@ -254,3 +254,15 @@ def test_dashboard_summary_of_an_empty_shop(admin_api):
     summary = admin_api.get("/api/admin/summary").get_json()
 
     assert (summary["revenue_cents"], summary["paid_orders"], summary["recent_orders"]) == (0, 0, [])
+
+
+def test_an_order_moved_by_someone_else_a_moment_ago_is_refused(admin_api, paid_order, session, monkeypatch, activity_log):
+    monkeypatch.setattr(OrderRepository, "change_status", lambda self, order_id, current, target: False)
+
+    response = change(admin_api, paid_order, "confirmed")
+
+    assert response.status_code == 409
+    assert "changed a moment ago" in response.get_json()["error"]
+    session.expire_all()
+    assert OrderRepository().get(paid_order).status.code == OrderStatusCode.PAID.value
+    assert "order_status_changed" not in activity_log()
